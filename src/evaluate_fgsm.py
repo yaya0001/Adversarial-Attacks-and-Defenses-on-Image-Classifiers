@@ -5,6 +5,9 @@ Evaluates a pre-trained SimpleCNN on the MNIST test set under
 both clean and FGSM-adversarial conditions at multiple epsilon
 levels to quantify the model's adversarial robustness.
 
+Results are saved to ``results/fgsm_evaluation.json`` for
+reproducibility and report generation.
+
 Usage:
     python src/evaluate_fgsm.py
 
@@ -14,6 +17,11 @@ Expected output:
     FGSM Accuracy (ε = 0.30):     ~20–40%
 """
 
+import json
+import os
+import random
+
+import numpy as np
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
@@ -23,11 +31,24 @@ from models.cnn import SimpleCNN
 from attacks.fgsm import fgsm_attack
 
 # ──────────────────────────────────────────────────────────────
+#  Reproducibility
+# ──────────────────────────────────────────────────────────────
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
+# ──────────────────────────────────────────────────────────────
 #  Configuration
 # ──────────────────────────────────────────────────────────────
 BATCH_SIZE = 64
 DATA_DIR = "./data"
 CHECKPOINT_PATH = "results/checkpoints/mnist_cnn.pth"
+RESULTS_DIR = "results"
+RESULTS_PATH = os.path.join(RESULTS_DIR, "fgsm_evaluation.json")
 
 # Epsilon values to sweep — larger ε ⟹ stronger attack, lower accuracy
 EPSILONS = [0.05, 0.1, 0.2, 0.3]
@@ -110,7 +131,7 @@ def evaluate_fgsm(
 def main() -> None:
     """
     Entry point: loads the model, evaluates clean & adversarial accuracy,
-    and prints a summary table.
+    prints a summary table, and saves results to JSON.
     """
     # --- Device Selection ---
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -125,7 +146,7 @@ def main() -> None:
     # --- Load Pre-trained Model ---
     model = SimpleCNN().to(device)
     model.load_state_dict(
-        torch.load(CHECKPOINT_PATH, map_location=device)
+        torch.load(CHECKPOINT_PATH, map_location=device, weights_only=True)
     )
     model.eval()
     print(f"✓ Model loaded from: {CHECKPOINT_PATH}\n")
@@ -136,12 +157,24 @@ def main() -> None:
 
     # --- Adversarial Accuracy at each epsilon ---
     print("-" * 45)
+    results = {"clean_accuracy": round(clean_acc, 2), "fgsm_results": []}
+
     for epsilon in EPSILONS:
         adv_acc = evaluate_fgsm(model, test_loader, device, epsilon)
         print(f"FGSM Accuracy (ε = {epsilon:<5})       {adv_acc:>6.2f}%")
+        results["fgsm_results"].append({
+            "epsilon": epsilon,
+            "accuracy": round(adv_acc, 2),
+        })
 
     print("-" * 45)
     print("Evaluation complete.")
+
+    # --- Save Results ---
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    with open(RESULTS_PATH, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"\n✓ Results saved to: {RESULTS_PATH}")
 
 
 if __name__ == "__main__":

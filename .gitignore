@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# Conda / Virtual envs
+.conda/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (auto-downloaded)
+src/data/
+
+# Generated outputs (reproducible via scripts)
+src/results/
+src/reports/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc

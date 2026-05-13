@@ -32,7 +32,7 @@ Deep neural networks are remarkably accurate on clean data — but remarkably fr
 2. **Attack** them with the two canonical white-box adversarial attacks: FGSM and PGD.
 3. **Defend** them using empirical adversarial training and benchmark the accuracy–robustness trade-off.
 
-Everything is implemented in **pure PyTorch**, packaged inside Jupyter notebooks, and fully reproducible via pinned Conda environments on both Linux and Windows.
+Everything is implemented in **pure PyTorch**, structured as clean, modular Python scripts, and fully reproducible via pinned Conda environments on both Linux and Windows.
 
 ---
 
@@ -54,26 +54,24 @@ Everything is implemented in **pure PyTorch**, packaged inside Jupyter notebooks
 ```
 Adversarial-Attacks-and-Defenses-on-Image-Classifiers/
 │
-├── src/                        # All source code (notebooks & scripts)
-│   ├── *.ipynb                 # Jupyter notebooks (training, attacks, defense, evaluation)
-│   └── *.py                    # Supporting Python modules (models, attacks, utils)
-│
-├── data/
-│   └── MNIST/
-│       └── raw/                # Auto-downloaded MNIST binary files
-│
-├── reports/
-│   └── figures/                # Generated plots (accuracy curves, adversarial examples, trade-off charts)
-│
-├── results/
-│   └── checkpoints/            # Saved model weights (.pt files)
+├── src/                        # All source code and execution scripts
+│   ├── attacks/                # Attack implementations (FGSM, PGD)
+│   ├── models/                 # Model architectures (SimpleCNN)
+│   ├── data/                   # Auto-downloaded datasets
+│   ├── reports/                # Generated reports and figures
+│   ├── results/                # Saved checkpoints and metrics (JSON)
+│   ├── train.py                # Model training script
+│   ├── evaluate_fgsm.py        # FGSM robustness evaluation
+│   ├── evaluate_pgd.py         # PGD robustness evaluation
+│   └── visualize_steps.py      # Figure generation script
 │
 ├── dl-project-linux.yml        # Conda environment — Linux / macOS
 ├── dl-project-windows.yml      # Conda environment — Windows
+├── .gitignore                  # Git ignore rules
 └── LICENSE                     # MIT License
 ```
 
-> **Note:** CIFAR-10 is downloaded automatically by `torchvision` on first run. MNIST raw files are already included under `data/MNIST/raw/`.
+> **Note:** CIFAR-10 will be downloaded automatically by `torchvision` on first run (if implemented). MNIST is downloaded automatically under `src/data/`.
 
 ---
 
@@ -88,7 +86,6 @@ Adversarial-Attacks-and-Defenses-on-Image-Classifiers/
 | Matplotlib | 3.8.4 |
 | Seaborn | 0.13.2 |
 | scikit-learn | 1.5.2 |
-| JupyterLab | 4.5.7 |
 | tqdm | 4.66.5 |
 | Pandas | 2.2.2 |
 | Pillow | 10.4.0 |
@@ -149,32 +146,33 @@ python -c "import torch; print(torch.__version__); print('CUDA available:', torc
 
 ## Running the Project
 
-### Launch JupyterLab
+### Running the Scripts
 
-With the environment activated, start JupyterLab from the project root:
+With the environment activated, navigate to the `src/` directory and run the scripts in sequence:
 
 ```bash
-jupyter lab
+cd src/
 ```
-
-Your browser will open at `http://localhost:8888`. Navigate to the `src/` directory to find and open the notebooks.
-
----
 
 ### Workflow Order
 
-Follow the notebooks in this sequence for a complete end-to-end experiment:
+Follow this sequence for a complete end-to-end experiment:
 
-```
-Step 1  →  Train baseline CNN classifiers (MNIST & CIFAR-10)
-Step 2  →  Run FGSM attack on the trained models (vary ε)
-Step 3  →  Run PGD attack on the trained models (vary ε and steps)
-Step 4  →  Perform adversarial training (FGSM-AT or PGD-AT)
-Step 5  →  Evaluate robustness: clean accuracy vs. adversarial accuracy
-Step 6  →  Plot and compare results
+```bash
+# Step 1: Train baseline CNN classifier (MNIST)
+python train.py
+
+# Step 2: Run FGSM attack on the trained model (varies ε)
+python evaluate_fgsm.py
+
+# Step 3: Run PGD attack on the trained model (varies ε and steps)
+python evaluate_pgd.py
+
+# Step 4: Generate visualization figures
+python visualize_steps.py
 ```
 
-> Open each notebook, read the markdown cells explaining the theory, then **run all cells top-to-bottom** (`Kernel → Restart & Run All`).
+> **Note:** All scripts use a fixed random seed (42) and export their metrics to JSON files under `src/results/` to ensure full reproducibility.
 
 ---
 
@@ -234,10 +232,10 @@ All generated outputs are saved automatically:
 
 | Output | Location | Description |
 |---|---|---|
-| Model checkpoints | `results/checkpoints/` | `.pt` files for baseline and adversarially trained models |
-| Accuracy vs. ε curves | `reports/figures/` | PNG plots showing model accuracy as ε increases |
-| Adversarial example grids | `reports/figures/` | Visual comparison of clean vs. perturbed images |
-| Robustness summary tables | notebook output cells | Clean acc. vs. FGSM acc. vs. PGD acc. per model |
+| Model checkpoints | `src/results/checkpoints/` | `.pt` files for baseline and adversarially trained models |
+| Evaluation Metrics | `src/results/` | `.json` files containing accuracy numbers for clean and adversarial runs |
+| Accuracy vs. ε curves | `src/reports/figures/` | PNG plots showing model accuracy as ε increases |
+| Adversarial example grids | `src/reports/figures/` | Visual comparison of clean vs. perturbed images |
 
 ---
 
@@ -245,10 +243,10 @@ All generated outputs are saved automatically:
 
 | Dataset | Classes | Image Size | Split | Source |
 |---|---|---|---|---|
-| **MNIST** | 10 (digits 0–9) | 28×28 grayscale | 60k train / 10k test | Included in `data/MNIST/raw/` |
-| **CIFAR-10** | 10 (objects) | 32×32 RGB | 50k train / 10k test | Auto-downloaded via `torchvision.datasets.CIFAR10` on first run |
+| **MNIST** | 10 (digits 0–9) | 28×28 grayscale | 50k train / 10k val / 10k test | Auto-downloaded to `src/data/MNIST/raw/` |
+| **CIFAR-10** | 10 (objects) | 32×32 RGB | 50k train / 10k test | Auto-downloaded via `torchvision.datasets.CIFAR10` |
 
-CIFAR-10 will be downloaded to a `data/` subdirectory automatically when you run the training notebook for the first time. No manual download required.
+Datasets will be downloaded to the `src/data/` subdirectory automatically when you run the training scripts for the first time. No manual download required.
 
 ---
 
@@ -267,4 +265,4 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 ---
 
-*Built with PyTorch · Conda · JupyterLab*
+*Built with PyTorch · Conda*

@@ -14,6 +14,9 @@ back into the ℓ∞ ball after each step:
 where Π clips the total perturbation to ‖δ‖∞ ≤ ε and the pixel
 values to [0, 1].
 
+Following Madry et al., the attack is initialized with a uniform
+random perturbation within the ε-ball to avoid poor local optima.
+
 Reference:
     https://arxiv.org/abs/1706.06083
 """
@@ -47,8 +50,12 @@ def pgd_attack(
     """
     # Keep an unmodified reference to the original clean images
     original_images = images.clone().detach()
-    # Initialize the adversarial images (starting from clean; no random init)
-    perturbed_images = original_images.clone().detach()
+
+    # Random initialization within the ε-ball (Madry et al., 2018)
+    perturbed_images = original_images + torch.empty_like(
+        original_images
+    ).uniform_(-epsilon, epsilon)
+    perturbed_images = torch.clamp(perturbed_images, 0, 1).detach()
 
     for step in range(iters):
         # Enable gradient computation on the current adversarial images

@@ -7,10 +7,18 @@ PGD-adversarial conditions at multiple (ε, α, iterations) settings.
 PGD is a stronger, iterative variant of FGSM and is considered the
 "standard" adversarial attack for robustness benchmarking.
 
+Results are saved to ``results/pgd_evaluation.json`` for
+reproducibility and report generation.
+
 Usage:
     python src/evaluate_pgd.py
 """
 
+import json
+import os
+import random
+
+import numpy as np
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
@@ -20,11 +28,24 @@ from models.cnn import SimpleCNN
 from attacks.pgd import pgd_attack
 
 # ──────────────────────────────────────────────────────────────
+#  Reproducibility
+# ──────────────────────────────────────────────────────────────
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
+# ──────────────────────────────────────────────────────────────
 #  Configuration
 # ──────────────────────────────────────────────────────────────
 BATCH_SIZE = 64
 DATA_DIR = "./data"
 CHECKPOINT_PATH = "results/checkpoints/mnist_cnn.pth"
+RESULTS_DIR = "results"
+RESULTS_PATH = os.path.join(RESULTS_DIR, "pgd_evaluation.json")
 
 # Each dict specifies one PGD evaluation setting.
 # Larger epsilon + more iterations ⟹ stronger attack.
@@ -81,7 +102,7 @@ def evaluate_pgd(
 def main() -> None:
     """
     Entry point: loads the model, evaluates accuracy under each PGD
-    configuration, and prints a formatted summary.
+    configuration, prints a formatted summary, and saves results to JSON.
     """
     # --- Device Selection ---
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -96,7 +117,7 @@ def main() -> None:
     # --- Load Pre-trained Model ---
     model = SimpleCNN().to(device)
     model.load_state_dict(
-        torch.load(CHECKPOINT_PATH, map_location=device)
+        torch.load(CHECKPOINT_PATH, map_location=device, weights_only=True)
     )
     model.eval()
     print(f"✓ Model loaded from: {CHECKPOINT_PATH}\n")
@@ -104,6 +125,8 @@ def main() -> None:
     # --- Evaluate under each PGD setting ---
     print(f"{'ε':<8} {'α':<8} {'Iters':<8} {'Accuracy':>10}")
     print("-" * 38)
+
+    results = {"pgd_results": []}
 
     for setting in PGD_SETTINGS:
         acc = evaluate_pgd(
@@ -114,9 +137,21 @@ def main() -> None:
         )
         print(f"{setting['epsilon']:<8} {setting['alpha']:<8} "
               f"{setting['iters']:<8} {acc:>9.2f}%")
+        results["pgd_results"].append({
+            "epsilon": setting["epsilon"],
+            "alpha": setting["alpha"],
+            "iters": setting["iters"],
+            "accuracy": round(acc, 2),
+        })
 
     print("-" * 38)
     print("Evaluation complete.")
+
+    # --- Save Results ---
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    with open(RESULTS_PATH, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"\n✓ Results saved to: {RESULTS_PATH}")
 
 
 if __name__ == "__main__":
