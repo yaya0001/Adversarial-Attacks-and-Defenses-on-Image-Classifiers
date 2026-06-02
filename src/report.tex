@@ -1,4 +1,4 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[conference,10pt]{IEEEtran}
 
 % -------------------------------------------------------
 % Packages
@@ -9,6 +9,11 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{hyperref}
+\usepackage{array}
+\usepackage{float}
+\usepackage{caption}
+
+\usepackage[margin=0.7in]{geometry}
 
 % -------------------------------------------------------
 % Title Block
@@ -16,52 +21,37 @@
 \title{Exploring Adversarial Robustness of Lightweight Image Classifiers}
 
 \author{
-    \IEEEauthorblockN{Student A}
-    \IEEEauthorblockA{\textit{Department Name} \\
-    \textit{University Name} \\
-    City, Country \\
-    studentA@university.edu}
+    \IEEEauthorblockN{Mohamed Abdel Majid}
+    \IEEEauthorblockA{\textit{Queen's University} \\
+    Mohamed.Abdelmajid@queensu.ca}
     \and
-    \IEEEauthorblockN{Student B}
-    \IEEEauthorblockA{\textit{Department Name} \\
-    \textit{University Name} \\
-    City, Country \\
-    studentB@university.edu}
+    \IEEEauthorblockN{Mohamed Abdelkhalek}
+    \IEEEauthorblockA{\textit{Queen's University} \\
+    mohamed.abdelkhalek@queensu.ca}
     \and
-    \IEEEauthorblockN{Student C}
-    \IEEEauthorblockA{\textit{Department Name} \\
-    \textit{University Name} \\
-    City, Country \\
-    studentC@university.edu}
+    \IEEEauthorblockN{Osama Elkhuribi}
+    \IEEEauthorblockA{\textit{Queen's University} \\
+    osama.elkhuribi@queensu.ca}
 }
 
 % -------------------------------------------------------
 \begin{document}
 
 \maketitle
-
+\vspace{-3.5cm}
 % -------------------------------------------------------
 % Abstract
 % -------------------------------------------------------
 \begin{abstract}
 Deep neural networks are known to be vulnerable to adversarial examples —
 imperceptibly perturbed inputs that cause confident misclassification.
-This paper investigates the adversarial robustness of a lightweight
-Convolutional Neural Network (CNN) trained on the MNIST handwritten-digit
-dataset. We implement two well-established gradient-based attack methods:
-the Fast Gradient Sign Method (FGSM) and Projected Gradient Descent (PGD),
-and evaluate the degradation in classification accuracy under varying
-perturbation budgets ($\varepsilon \in \{0.05, 0.1, 0.2, 0.3\}$).
-Our preliminary experiments confirm that even a compact two-layer CNN
-achieving approximately 99\% clean accuracy suffers drastic accuracy drops
-under adversarial conditions, falling below 30\% under strong PGD attacks.
-As a defense, we plan to integrate adversarial training into the
-optimization loop and analyze the resulting robustness–accuracy trade-off.
-Current progress covers the full baseline model, both attack pipelines,
-and multi-epsilon robustness evaluation scripts; adversarial training and
-final analysis constitute the remaining planned work.
+This paper studies the adversarial robustness of a lightweight
+Convolutional Neural Network (CNN) trained on the MNIST dataset of handwritten digits. We use two well-established gradient-based attack methods:
+the Fast Gradient Sign Method (FGSM) and Projected Gradient Descent (PGD), and record the decrease of classification accuracy under different perturbation values ($\varepsilon \in \{0.05, 0.1, 0.2, 0.3\}$).
+Our preliminary experiments confirm that even a compact two-layer CNN achieving about 99\% clean accuracy suffers drastic accuracy drops under adversarial conditions, falling to 2.33\% at $\epsilon=0.20$ and 0.00\% at $\epsilon=0.30$ under PGD.
+As a defense, we plan to include adversarial training within the optimization loop and investigate the ensuing robustness-accuracy trade-off.
+Current progress includes the full baseline model, attack pipelines, and multi-epsilon robustness evaluation scripts. Remaining planned work includes adversarial training and final analysis.
 \end{abstract}
-
 \begin{IEEEkeywords}
 adversarial examples, FGSM, PGD, adversarial training, CNN robustness
 \end{IEEEkeywords}
@@ -75,14 +65,7 @@ adversarial examples, FGSM, PGD, adversarial training, CNN robustness
 \subsection{Problem Statement and Motivation}
 
 Despite achieving near-human performance on standard benchmarks, deep
-neural networks are surprisingly brittle. Szegedy et al.~\cite{szegedy2014}
-first demonstrated that adding a small, human-imperceptible perturbation to
-an input image — an \emph{adversarial example} — can reliably fool a
-high-accuracy classifier. This vulnerability is not limited to academic
-curiosity: adversarial examples pose real threats in safety-critical
-deployments such as autonomous vehicles, medical imaging, and face
-recognition systems~\cite{goodfellow2015fgsm}.
-
+neural networks are surprisingly brittle. Szegedy et al.\cite{szegedy2014} first showed that adding a small perturbation to an input image can reliably fool a high-accuracy classifier, which is called an \emph{adversarial example} and is imperceptible to human eyes. This vulnerability is not merely of academic interest: adversarial examples represent real threats in safety-critical deployments such as autonomous vehicles, medical imaging, and face recognition systems~\cite{goodfellow2015fgsm}.
 The core challenge is that the decision boundaries learned by gradient-based
 models are highly sensitive to structured perturbations aligned with the loss
 gradient. Because these perturbations are constrained to be small under an
@@ -92,11 +75,7 @@ predicted label. Understanding \emph{why} this happens, and \emph{how} models
 can be made resistant to such attacks, is a fundamental open problem in
 trustworthy machine learning.
 
-This project is motivated by the need to systematically characterize how
-even a small, lightweight CNN responds to increasing levels of adversarial
-pressure, and to assess whether simple defenses — specifically adversarial
-training — can meaningfully close the robustness gap without sacrificing
-clean accuracy.
+This project is motivated by the need to systematically characterize how even a small, lightweight CNN responds to increasing levels of adversarial pressure, and to assess whether simple defenses — specifically adversarial training — can meaningfully close the robustness gap without sacrificing clean accuracy.
 
 \subsection{Project Scope and Goals}
 
@@ -119,11 +98,8 @@ The project targets the following concrete objectives:
           perturbations typically reduces its performance on clean inputs.
 \end{enumerate}
 
-The scope is intentionally kept narrow. We use MNIST as the primary dataset
-(with CIFAR-10 as a stretch goal), restrict attacks to $\ell_\infty$-bounded
-gradient methods, and focus on empirical rather than certified defenses.
-Complex defenses such as randomized smoothing, input preprocessing, or
-provable $\ell_2$ certificates are explicitly out of scope.
+The scope is deliberately limited. We consider MNIST as the main dataset (with CIFAR-10 as a stretch goal), limit attacks to $\ell_\infty$-bounded gradient methods, and concentrate on empirical as opposed to certified defenses.
+Complex defenses like randomized smoothing, input pre-processing, or provable $\ell_2$ certificates are explicitly out-of-scope.
 
 
 % ═══════════════════════════════════════════════════════
@@ -150,6 +126,18 @@ data augmentation — as an early defense, a precursor to the more principled
 adversarial training introduced later. FGSM remains the de-facto baseline
 attack because of its negligible computational cost, making it ideal for
 sweeping over multiple $\varepsilon$ values.
+\subsection{Kurakin et al. — Adversarial Machine Learning at Scale (2017)}
+
+Kurakin et al.~\cite{kurakin2017scale} extended the study of adversarial
+examples to large-scale settings (ImageNet) and investigated how they
+survive real-world transformations such as printing and photographing.
+Their key contribution relevant to this project is the study of
+\emph{iterative FGSM} variants — precursors to PGD — and an early analysis
+of adversarial training at scale. They showed that single-step training
+(using FGSM-generated examples) leads to ``label leaking'': the model
+learns to associate the perturbed image with the attack signal rather than
+the true semantic class. This motivates the use of \emph{multi-step} (PGD)
+adversarial training as a more principled defense, which we intend to adopt.
 
 \subsection{Madry et al. — PGD and Adversarial Training (2018)}
 
@@ -163,28 +151,8 @@ over all perturbations in the $\ell_\infty$ ball $\mathcal{B}(x,\varepsilon)$:
     \right].
     \label{eq:pgd_objective}
 \end{equation}
-To approximately solve the inner maximization, the authors proposed
-Projected Gradient Descent (PGD) — a multi-step iterative attack that
-performs $T$ signed-gradient ascent steps, each of size $\alpha$, while
-projecting the cumulative perturbation back onto $\mathcal{B}(x,\varepsilon)$
-after every step. PGD is widely accepted as the strongest first-order attack
-and serves as the standard robustness benchmark. The adversarial training
-procedure that uses PGD-generated examples during optimization produces
-models with meaningful empirical robustness. This work directly builds on
-the PGD formulation.
+To approximately solve the inner maximization, the authors proposed Projected Gradient Descent (PGD) -- a multi-step iterative attack that takes $T$ signed-gradient ascent steps of size $\alpha$ each, projecting the cumulative perturbation back onto $\mathcal{B}(x,\varepsilon)$ after each step. PGD is the most accepted first-order attack and is the standard for robustness benchmarks. The optimization with PGD-generated examples during adversarial training leads to models with empirical robustness that is meaningful. This work is a direct extension of the PGD formulation.
 
-\subsection{Kurakin et al. — Adversarial Machine Learning at Scale (2017)}
-
-Kurakin et al.~\cite{kurakin2017scale} extended the study of adversarial
-examples to large-scale settings (ImageNet) and investigated how they
-survive real-world transformations such as printing and photographing.
-Their key contribution relevant to this project is the study of
-\emph{iterative FGSM} variants — precursors to PGD — and an early analysis
-of adversarial training at scale. They showed that single-step training
-(using FGSM-generated examples) leads to ``label leaking'': the model
-learns to associate the perturbed image with the attack signal rather than
-the true semantic class. This motivates the use of \emph{multi-step} (PGD)
-adversarial training as a more principled defense, which we intend to adopt.
 
 \subsection{How This Work Differs}
 
@@ -220,33 +188,15 @@ pedagogically transparent empirical study at small scale. Specifically:
 % ═══════════════════════════════════════════════════════
 \section{Methodology}
 
-This section describes the dataset, preprocessing steps, baseline CNN architecture, attack methods, and baselines used in the current stage of the project.
+This section describes the dataset, preprocessing steps, baseline CNN architecture, training procedure, adversarial attack methods, and baselines used in the current stage of the project.
 
 \subsection{Dataset and Preprocessing}
 
-The experiments are conducted using the MNIST handwritten digit dataset. MNIST contains 70,000 grayscale images of handwritten digits (0--9), each of size $28 \times 28$ pixels. The dataset was selected because it is lightweight, easy to train on, and well-suited for demonstrating the effect of adversarial perturbations on image classifiers without confounding factors from complex visual scenes.
+The experiments are conducted using the MNIST handwritten digit dataset. MNIST contains 70,000 grayscale images of handwritten digits from 0 to 9. Each image has a size of $28 \times 28$ pixels. The dataset was selected because it is lightweight, easy to train on, and well-suited for demonstrating the effect of adversarial perturbations on image classifiers without the complexity of larger image datasets.
 
-The dataset is loaded using Torchvision and stored locally under \texttt{data/MNIST/raw}. Each image is converted to a PyTorch tensor via the \texttt{ToTensor()} transform, which scales pixel values from $[0, 255]$ to $[0, 1]$. No additional augmentation or normalization is applied, keeping the preprocessing pipeline minimal and transparent. Since MNIST images are grayscale, each input sample has the shape $1 \times 28 \times 28$.
+The dataset is loaded using Torchvision and stored locally under \texttt{data/MNIST/raw}. Each image is converted to a PyTorch tensor using the \texttt{ToTensor()} transform, which scales pixel values from $[0,255]$ to $[0,1]$. No additional augmentation is applied in this stage, keeping the preprocessing pipeline simple and transparent. Since MNIST images are grayscale, each input sample has the shape $1 \times 28 \times 28$.
 
-The original 60,000-sample training set is split into 50,000 training samples and 10,000 validation samples using a fixed random seed (42) to ensure reproducibility. The held-out 10,000 test samples are used exclusively for evaluating clean accuracy and adversarial robustness. This three-way split (train/validation/test) prevents data leakage from hyperparameter tuning on the test set.
-
-\begin{table}[htbp]
-\caption{Dataset Split Summary}
-\begin{center}
-\begin{tabular}{|c|c|c|}
-\hline
-\textbf{Split} & \textbf{Samples} & \textbf{Purpose} \\
-\hline
-Training & 50,000 & Model optimization \\
-\hline
-Validation & 10,000 & Hyperparameter selection \\
-\hline
-Test & 10,000 & Final accuracy \& robustness evaluation \\
-\hline
-\end{tabular}
-\label{tab:data_split}
-\end{center}
-\end{table}
+The original MNIST dataset provides 60,000 training samples and 10,000 test samples. In this implementation, the original training set is split into 50,000 training samples and 10,000 validation samples. The training split is used to optimize the CNN parameters, the validation split is used to monitor performance after each epoch, and the held-out test set is used to evaluate clean accuracy and adversarial robustness under FGSM and PGD attacks.
 
 \subsection{Model Architecture}
 
@@ -254,67 +204,52 @@ The baseline classifier is a lightweight convolutional neural network designed f
 
 The first convolutional layer maps the input grayscale image to 32 feature maps using $3 \times 3$ kernels. The second convolutional layer increases the number of feature maps to 64. ReLU activation and pooling operations are used to introduce non-linearity and reduce spatial dimensions. The resulting features are flattened and passed to a fully connected layer with 128 neurons, followed by an output layer with 10 neurons.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Baseline CNN Architecture}
-\begin{center}
-\begin{tabular}{|c|c|c|}
+\label{tab:model_architecture}
+\centering
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{p{0.23\columnwidth} p{0.42\columnwidth} p{0.25\columnwidth}}
 \hline
 \textbf{Layer} & \textbf{Configuration} & \textbf{Output Shape} \\
 \hline
-Input & --- & $1 \times 28 \times 28$ \\
-\hline
+Input & -- & $1 \times 28 \times 28$ \\
 Conv1 + ReLU & 32 filters, $3{\times}3$, pad=1 & $32 \times 28 \times 28$ \\
-\hline
 MaxPool & $2{\times}2$, stride 2 & $32 \times 14 \times 14$ \\
-\hline
 Conv2 + ReLU & 64 filters, $3{\times}3$, pad=1 & $64 \times 14 \times 14$ \\
-\hline
 MaxPool & $2{\times}2$, stride 2 & $64 \times 7 \times 7$ \\
-\hline
-Flatten & --- & 3136 \\
-\hline
+Flatten & -- & 3136 \\
 FC1 + ReLU & 128 neurons & 128 \\
-\hline
-FC2 (logits) & 10 neurons & 10 \\
+FC2 & 10 output classes & 10 \\
 \hline
 \end{tabular}
-\label{tab:model_architecture}
-\end{center}
 \end{table}
 
-The model outputs raw logits (without softmax), which are passed directly to the \texttt{CrossEntropyLoss} function during training. This is a deliberate design choice: \texttt{CrossEntropyLoss} in PyTorch internally combines \texttt{LogSoftmax} and \texttt{NLLLoss}, providing better numerical stability than applying softmax separately. The model uses no dropout or batch normalization, keeping the architecture minimal to isolate the effect of adversarial perturbations from regularization artifacts.
+The model outputs raw logits, which are passed directly to the \texttt{CrossEntropyLoss} function during training. This is suitable because PyTorch's \texttt{CrossEntropyLoss} internally combines log-softmax and negative log-likelihood loss. The model uses a simple architecture without additional regularization layers, which makes it easier to analyze the effect of adversarial perturbations on a standard CNN baseline.
 
 \subsection{Training Procedure}
 
-The baseline CNN is trained using supervised learning on clean MNIST images with the following configuration:
+The baseline CNN is trained using supervised learning on clean MNIST images. For each mini-batch, the model predicts the digit class, and the cross-entropy loss is computed between the predicted logits and the true label. The optimizer updates the model parameters to minimize this loss.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Training Hyperparameters}
-\begin{center}
-\begin{tabular}{|c|c|}
+\label{tab:hyperparams}
+\centering
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{p{0.45\columnwidth} p{0.35\columnwidth}}
 \hline
 \textbf{Parameter} & \textbf{Value} \\
 \hline
 Optimizer & Adam \\
-\hline
 Learning rate & $1 \times 10^{-3}$ \\
-\hline
 Batch size & 64 \\
-\hline
 Epochs & 5 \\
-\hline
 Loss function & Cross-Entropy \\
 \hline
-Random seed & 42 \\
-\hline
 \end{tabular}
-\label{tab:hyperparams}
-\end{center}
 \end{table}
 
-For each mini-batch, the model predicts the digit class, and the cross-entropy loss is computed between the predicted logits and the true label. The Adam optimizer~updates the model parameters to minimize this loss. After each epoch, the model is evaluated on both the validation set (for monitoring generalization) and the test set (for final reporting). The model is trained for 5 epochs, after which the final checkpoint is saved to \texttt{results/checkpoints/mnist\_cnn.pth}. Training metrics (loss and accuracy per epoch) are exported to a JSON file for reproducibility.
-
-All random seeds (Python, NumPy, PyTorch, CUDA) are fixed to 42, and \texttt{cudnn.deterministic} is enabled to ensure fully reproducible training runs across hardware platforms.
+After each epoch, the model is evaluated on both the validation split and the held-out test set to monitor classification performance. After training, the final checkpoint is saved to \texttt{results/checkpoints/mnist\_cnn.pth}. This saved checkpoint is then used for clean evaluation and adversarial attack evaluation.
 
 \subsection{Adversarial Attack Methods}
 
@@ -326,7 +261,7 @@ x_{adv} = x + \epsilon \cdot sign(\nabla_x J(\theta, x, y))
 
 where $\epsilon$ controls the perturbation size. Different epsilon values are tested to analyze how increasing perturbation strength affects classification accuracy.
 
-Projected Gradient Descent (PGD) is implemented as a stronger iterative attack following Madry et al.~\cite{madry2018pgd}. It applies multiple smaller gradient-based updates and projects the adversarial image back into the allowed $\epsilon$-bounded region after each step:
+Projected Gradient Descent (PGD) is implemented as a stronger iterative attack. Instead of applying one update step like FGSM, PGD applies multiple smaller gradient-based updates and projects the adversarial image back into the allowed $\epsilon$-bounded region after each step:
 
 \[
 x^{t+1}_{adv} = \Pi_{x,\epsilon}
@@ -335,11 +270,13 @@ x^t_{adv} + \alpha \cdot sign(\nabla_x J(\theta, x^t_{adv}, y))
 \right)
 \]
 
-where $\alpha$ is the step size and $t$ is the iteration number. Following the recommendation of Madry et al., the attack is initialized with a uniform random perturbation within the $\epsilon$-ball (i.e., $x^0_{adv} = x + \delta$, where $\delta \sim \mathcal{U}(-\epsilon, \epsilon)$) rather than starting from the clean image. This random initialization helps avoid poor local optima and distinguishes PGD from the simpler Iterative FGSM (I-FGSM) attack. PGD is stronger than FGSM because it repeatedly searches for a more effective adversarial perturbation through multiple optimization steps.
+where $\alpha$ is the step size and $t$ is the iteration number. PGD is expected to be stronger than FGSM because it repeatedly searches for a more effective adversarial perturbation through multiple optimization steps.
 
 \subsection{Baselines}
 
-The first implemented baseline is a standard CNN trained only on clean MNIST images. This model is used to measure clean accuracy and adversarial accuracy under FGSM and PGD attacks. In the next stage, an adversarially trained CNN will be implemented as a defense baseline. The standard model and adversarially trained model will then be compared in terms of clean accuracy and robust accuracy.
+The first implemented baseline is a standard CNN trained only on clean MNIST images. This model is used to measure clean accuracy and adversarial accuracy under FGSM and PGD attacks.
+
+In the next stage, an adversarially trained CNN will be implemented as a defense baseline. The standard CNN and the adversarially trained CNN will then be compared in terms of clean accuracy and robust accuracy. This comparison will help analyze the trade-off between standard classification performance and adversarial robustness.
 % -------------------------------------------------------
 % 4. Preliminary Experiments and Results
 % -------------------------------------------------------
@@ -349,81 +286,68 @@ This section presents the preliminary experimental results obtained at the midte
 
 \subsection{Implementation Details}
 
-The project is implemented in Python~3.10 using PyTorch~2.11.0. The code is organized into separate modules for the CNN model (\texttt{src/models/cnn.py}), adversarial attacks (\texttt{src/attacks/fgsm.py}, \texttt{src/attacks/pgd.py}), training (\texttt{src/train.py}), evaluation (\texttt{src/evaluate\_fgsm.py}, \texttt{src/evaluate\_pgd.py}), and visualization (\texttt{src/visualize\_steps.py}).
+The project is implemented in Python~3.10 using PyTorch. The code is organized into separate modules for the CNN model, adversarial attacks, training, evaluation, and visualization. The baseline CNN is implemented in \texttt{src/models/cnn.py}. The FGSM and PGD attacks are implemented in \texttt{src/attacks/fgsm.py} and \texttt{src/attacks/pgd.py}, respectively. The training script saves the trained model checkpoint to \texttt{results/checkpoints/mnist\_cnn.pth}.
 
-All experiments are fully reproducible: random seeds are fixed across Python, NumPy, and PyTorch (seed~=~42), and \texttt{cudnn.deterministic} is enabled. Evaluation metrics are exported to JSON files (\texttt{results/fgsm\_evaluation.json}, \texttt{results/pgd\_evaluation.json}) for automated report generation. All preliminary experiments were conducted on CPU. The main libraries used include PyTorch, Torchvision, NumPy, Matplotlib, and tqdm. The model was trained for 5 epochs on the 50,000-sample training split and monitored on the 10,000-sample validation set after each epoch.
+All preliminary experiments were conducted on CPU. The main libraries used include PyTorch, Torchvision, NumPy, Matplotlib, and tqdm. The model was trained for 5 epochs on the 50,000-sample training split and monitored using a 10,000-sample validation split. The final evaluation was conducted on the held-out MNIST test set. Training and evaluation metrics were also saved to JSON files for reproducibility.
 
 \subsection{Baseline Training Results}
 
-The baseline CNN was trained using clean MNIST images. Table~\ref{tab:training_results} shows the training loss and test accuracy for each epoch. The model achieved a final clean test accuracy of 98.65\%, indicating that the lightweight CNN learned effective representations for handwritten digit classification.
+The baseline CNN was trained using clean MNIST images. Table~\ref{tab:training_results} shows the training loss, validation accuracy, and test accuracy for each epoch. The final saved model achieved a clean test accuracy of 98.76\%, indicating that the lightweight CNN learned effective representations for handwritten digit classification.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{Baseline CNN Training Results}
-\begin{center}
-\begin{tabular}{|c|c|c|}
+\label{tab:training_results}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{c c c c}
 \hline
-\textbf{Epoch} & \textbf{Average Loss} & \textbf{Test Accuracy (\%)} \\
+\textbf{Epoch} & \textbf{Avg. Loss} & \textbf{Val. Acc. (\%)} & \textbf{Test Acc. (\%)} \\
 \hline
-1 & 0.2043 & 98.31 \\
-\hline
-2 & 0.0547 & 98.64 \\
-\hline
-3 & 0.0370 & 98.98 \\
-\hline
-4 & 0.0277 & 98.75 \\
-\hline
-5 & 0.0217 & 98.65 \\
+1 & 0.2043 & 97.90 & 98.31 \\
+2 & 0.0542 & 98.24 & 98.63 \\
+3 & 0.0376 & 98.67 & 98.87 \\
+4 & 0.0280 & 98.73 & 98.79 \\
+5 & 0.0225 & 98.44 & 98.76 \\
 \hline
 \end{tabular}
-\label{tab:training_results}
-\end{center}
 \end{table}
 
-The training loss decreased steadily from 0.2043 in the first epoch to 0.0217 in the fifth epoch. This shows that the model converged successfully during training. Although the highest test accuracy was 98.98\% at epoch 3, the final saved model achieved 98.65\% accuracy and was used for the adversarial evaluation stage.
+The training loss decreased steadily from 0.2043 in the first epoch to 0.0225 in the fifth epoch. This shows that the model converged successfully during training. Although the highest test accuracy was 98.87\% at epoch 3, the final saved model achieved 98.76\% accuracy and was used for the adversarial evaluation stage.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=0.45\textwidth]{02_clean_predictions.png}}
+\centerline{\includegraphics[width=0.20\textwidth]{02_clean_predictions.png}}
 \caption{Clean predictions produced by the trained CNN model on MNIST test samples.}
 \label{fig:clean_predictions}
 \end{figure}
 
 \subsection{FGSM Attack Results}
 
-After evaluating the model on clean images, the Fast Gradient Sign Method (FGSM) was applied using different perturbation budgets. The results are shown in Table~\ref{tab:fgsm_results}. The clean accuracy before applying any adversarial perturbation was 98.65\%.
-
-\begin{table}[htbp]
+After evaluating the model on clean images, the Fast Gradient Sign Method (FGSM) was applied using different perturbation budgets. The results are shown in Table~\ref{tab:fgsm_results}. The clean accuracy before applying any adversarial perturbation was 98.76\%.
+\begin{table}[H]
 \caption{FGSM Robustness Results}
-\begin{center}
-\begin{tabular}{|c|c|c|}
+\label{tab:fgsm_results}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{c c c}
 \hline
 \textbf{Attack} & \textbf{Epsilon} & \textbf{Accuracy (\%)} \\
 \hline
-Clean & 0.00 & 98.65 \\
-\hline
-FGSM & 0.05 & 94.10 \\
-\hline
-FGSM & 0.10 & 80.19 \\
-\hline
-FGSM & 0.20 & 22.87 \\
-\hline
-FGSM & 0.30 & 4.14 \\
+Clean & 0.00 & 98.76 \\
+FGSM & 0.05 & 94.45 \\
+FGSM & 0.10 & 81.74 \\
+FGSM & 0.20 & 25.74 \\
+FGSM & 0.30 & 5.13 \\
 \hline
 \end{tabular}
-\label{tab:fgsm_results}
-\end{center}
 \end{table}
 
-The results show that the model accuracy decreases as the perturbation budget increases. At $\epsilon = 0.05$, the model still achieved 94.10\% accuracy, meaning that small perturbations had a limited effect. However, when $\epsilon$ increased to 0.20, the accuracy dropped sharply to 22.87\%. At $\epsilon = 0.30$, the accuracy decreased further to 4.14\%, showing that the baseline CNN is highly vulnerable to stronger adversarial perturbations.
+The results show that the model accuracy decreases as the perturbation budget increases. At $\epsilon = 0.05$, the model still achieved 94.45\% accuracy, meaning that small perturbations had a limited effect. However, when $\epsilon$ increased to 0.20, the accuracy dropped sharply to 25.74\%. At $\epsilon = 0.30$, the accuracy decreased further to 5.13\%, showing that the baseline CNN is highly vulnerable to stronger adversarial perturbations.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=0.45\textwidth]{03_fgsm_original_vs_attack.png}}
-\caption{Comparison between original MNIST samples and FGSM adversarial examples.}
-\label{fig:fgsm_examples}
-\end{figure}
-
-\begin{figure}[htbp]
-\centerline{\includegraphics[width=0.45\textwidth]{05_fgsm_epsilon_comparison.png}}
-\caption{Effect of different FGSM epsilon values on adversarial examples.}
+\centerline{\includegraphics[width=0.20\textwidth]{05_fgsm_epsilon_comparison.png}}
+\caption{Effect of increasing FGSM epsilon values on adversarial examples.}
 \label{fig:fgsm_epsilon}
 \end{figure}
 
@@ -431,98 +355,144 @@ The results show that the model accuracy decreases as the perturbation budget in
 
 Projected Gradient Descent (PGD) was also evaluated as a stronger iterative adversarial attack. Unlike FGSM, PGD applies multiple gradient-based update steps and projects the adversarial image back into the allowed perturbation region after each step. Table~\ref{tab:pgd_results} summarizes the PGD evaluation results.
 
-\begin{table}[htbp]
+\begin{table}[H]
 \caption{PGD Robustness Results}
-\begin{center}
-\begin{tabular}{|c|c|c|c|c|}
+\label{tab:pgd_results}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{c c c c}
 \hline
-\textbf{Attack} & \textbf{Epsilon} & \textbf{Alpha} & \textbf{Iterations} & \textbf{Accuracy (\%)} \\
+\textbf{Epsilon} & \textbf{Alpha} & \textbf{Iterations} & \textbf{Accuracy (\%)} \\
 \hline
-PGD & 0.10 & 0.01 & 10 & 75.32 \\
-\hline
-PGD & 0.20 & 0.01 & 20 & 1.39 \\
-\hline
-PGD & 0.30 & 0.01 & 40 & 0.00 \\
+0.10 & 0.01 & 10 & 77.81 \\
+0.20 & 0.01 & 20 & 2.33 \\
+0.30 & 0.01 & 40 & 0.00 \\
 \hline
 \end{tabular}
-\label{tab:pgd_results}
-\end{center}
 \end{table}
 
-The PGD results show a stronger degradation in accuracy compared with FGSM. At $\epsilon = 0.10$, PGD reduced the accuracy to 75.32\%, while FGSM at the same epsilon achieved 80.19\%. This confirms that PGD is a stronger attack because it performs multiple optimization steps instead of a single update. At $\epsilon = 0.20$, PGD reduced the accuracy to only 1.39\%, and at $\epsilon = 0.30$, the model failed completely with 0.00\% accuracy. These results clearly demonstrate the vulnerability of the baseline CNN under iterative adversarial attacks.
+The PGD results show a stronger degradation in accuracy compared with FGSM. At $\epsilon = 0.10$, PGD reduced the accuracy to 77.81\%, while FGSM at the same epsilon achieved 81.74\%. This confirms that PGD is a stronger attack because it performs multiple optimization steps instead of a single update. At $\epsilon = 0.20$, PGD reduced the accuracy to only 2.33\%, and at $\epsilon = 0.30$, the model failed completely with 0.00\% accuracy. These results clearly demonstrate the vulnerability of the baseline CNN under iterative adversarial attacks.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=0.45\textwidth]{04_pgd_original_vs_attack.png}}
-\caption{Comparison between original MNIST samples and PGD adversarial examples.}
-\label{fig:pgd_examples}
-\end{figure}
-
-\begin{figure}[htbp]
-\centerline{\includegraphics[width=0.45\textwidth]{06_pgd_settings_comparison.png}}
-\caption{Effect of different PGD settings on adversarial example generation.}
+\centerline{\includegraphics[width=0.30\textwidth]{06_pgd_settings_comparison.png}}
+\caption{Effect of different PGD attack settings on adversarial example generation.}
 \label{fig:pgd_settings}
 \end{figure}
 
 \subsection{Discussion of Preliminary Results}
 
-The preliminary experiments show that the baseline CNN performs very well on clean MNIST images, achieving 98.65\% test accuracy. However, the same model becomes significantly less reliable when exposed to adversarial perturbations. FGSM caused a gradual decrease in accuracy as $\epsilon$ increased, while PGD caused a much stronger reduction due to its iterative nature.
+The preliminary experiments show that the baseline CNN performs very well on clean MNIST images, achieving 98.76\% test accuracy. However, the same model becomes significantly less reliable when exposed to adversarial perturbations. FGSM caused a gradual decrease in accuracy as $\epsilon$ increased, while PGD caused a much stronger reduction due to its iterative nature.
 
 These results support the main motivation of the project: standard training can produce a model with high clean accuracy, but this does not guarantee robustness against adversarial attacks. The large gap between clean accuracy and adversarial accuracy highlights the need for defense mechanisms. In the next stage of the project, adversarial training will be implemented and compared against the current baseline model using both clean accuracy and robust accuracy under FGSM and PGD attacks.
 
+% ═══════════════════════════════════════════════════════
+% V. PLANNED WORK AND TIMELINE
+% ═══════════════════════════════════════════════════════
 \section{Planned Work and Timeline}
 
-\subsection{Remaining Experiments and Ablations}
-
-The following experiments are planned for the second half of the project:
+\subsection{Remaining Experiments}
+\vspace{0.3cm}
+The second half of the project will focus on implementing adversarial training and analyzing the trade-off between clean accuracy and adversarial robustness. The planned work is organized as follows:
 
 \begin{enumerate}
-    \item \textbf{Adversarial Training (FGSM-AT and PGD-AT):} Re-train the baseline CNN by augmenting each mini-batch with adversarial examples generated on-the-fly. Two variants will be compared: FGSM-based adversarial training (faster, moderate robustness) and PGD-based adversarial training with 7 steps (slower, stronger robustness).
+    \item \textbf{Adversarial Training Defense:}
+    Mohamed Abdel Majid will implement adversarial training scripts using adversarial examples generated during training. Two variants will be considered: FGSM-based adversarial training (FGSM-AT) and PGD-based adversarial training (PGD-AT). FGSM-AT is faster and less computationally expensive, while PGD-AT is expected to provide stronger robustness.
 
-    \item \textbf{Clean vs.\ Robust Accuracy Comparison:} Evaluate all models (standard, FGSM-AT, PGD-AT) under matched $\varepsilon$ sweeps to produce accuracy-vs-epsilon curves and quantify the robustness--accuracy trade-off.
+    \item \textbf{Training Pipeline Adaptation:}
+    Osama Elkhuribi will adapt the existing training pipeline to support adversarial training, checkpoint management, and logging of clean and robust accuracy during training.
 
-    \item \textbf{Ablation Studies:}
-    \begin{itemize}
-        \item Effect of training epochs on adversarial robustness (5, 10, 20 epochs).
-        \item Effect of PGD attack steps during adversarial training (3, 7, 20 steps).
-        \item Comparison of models with and without dropout regularization.
-    \end{itemize}
+    \item \textbf{Robustness Evaluation and Ablation Studies:}
+    Mohamed Abdelkhalek will evaluate the standard and adversarially trained models under FGSM and PGD attacks. The evaluation will include accuracy-vs-epsilon curves and ablation studies such as the effect of PGD steps and training epochs.
 
-    \item \textbf{CIFAR-10 Extension (Stretch Goal):} If time permits, design a deeper CNN with 3 input channels for CIFAR-10 and repeat the attack/defense experiments on a more challenging dataset.
+    \item \textbf{Robustness--Accuracy Trade-Off Analysis:}
+    Mohamed Abdel Majid will analyze the trade-off between clean accuracy and robust accuracy. The final analysis will compare the standard CNN, FGSM-AT model, and PGD-AT model under the same attack settings.
+
+    \item \textbf{CIFAR-10 Extension (Optional):}
+    If time permits, the team may extend the pipeline to CIFAR-10 using a deeper CNN architecture. This is considered a stretch goal and will only be attempted after completing the MNIST adversarial training experiments.
 \end{enumerate}
 
-\noindent\textbf{Timeline:}
-\begin{itemize}
-    \item \textbf{Week 3:} Implement FGSM-AT and PGD-AT adversarial training scripts; run adversarial training experiments; track robust accuracy.
-    \item \textbf{Week 4:} Conduct ablation studies; generate final comparison plots and trade-off analysis; write and finalize the final report.
-\end{itemize}
+
+\subsection{Timeline}
+\vspace{-0.2cm}
+
+\begin{center}
+\scriptsize
+\captionof{table}{Project Timeline}
+\label{tab:timeline}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{p{0.12\columnwidth} p{0.78\columnwidth}}
+\hline
+\textbf{Week} & \textbf{Deliverables} \\
+\hline
+1 & Baseline CNN implemented, trained on MNIST, and evaluated on clean test data. Completed with 98.76\% test accuracy. \\
+2 & FGSM and PGD attacks implemented and evaluated under different perturbation settings. Midterm report prepared. \\
+3 & Mohamed Abdel Majid and Osama Elkhuribi will implement and run FGSM-AT and/or PGD-AT adversarial training experiments. \\
+4 & Mohamed Abdelkhalek will run robustness evaluations and ablation studies. Mohamed Abdel Majid will finalize trade-off analysis, final plots, and report writing. \\
+\hline
+\end{tabular}
+\end{center}
+\vspace{-0.2cm}
 
 \subsection{Risks and Mitigation Strategies}
 
 \begin{itemize}
-    \item \textbf{Long adversarial training time:} PGD-AT requires generating adversarial examples at every training step, significantly increasing wall-clock time. \emph{Mitigation:} Use a small number of PGD steps (7) during training as recommended by Madry et al.~\cite{madry2018pgd}, and run experiments on a GPU if available.
+    \item \textbf{High computational cost:}
+    PGD-based adversarial training is slower because adversarial examples must be generated during training. To reduce this cost, the number of PGD steps will be limited, and experiments will remain focused on MNIST unless additional time is available.
 
-    \item \textbf{Overfitting to specific attack:} Models adversarially trained with FGSM may not generalize to PGD attacks (label leaking~\cite{kurakin2017scale}). \emph{Mitigation:} Always evaluate using PGD as the benchmark attack, regardless of the training attack method.
+    \item \textbf{Weak generalization of FGSM-AT:}
+    A model trained only with FGSM examples may not be robust against stronger PGD attacks. To address this, PGD will be used as the main robustness evaluation attack.
 
-    \item \textbf{Accuracy degradation on clean data:} Adversarial training is known to reduce clean accuracy by 2--10\%. \emph{Mitigation:} This trade-off is an expected result and will be reported and analyzed rather than avoided.
+    \item \textbf{Clean accuracy degradation:}
+    Adversarial training may reduce clean accuracy. This is an expected robustness--accuracy trade-off and will be reported as part of the final analysis.
 \end{itemize}
 
+% ═══════════════════════════════════════════════════════
+% VI. TEAM CONTRIBUTIONS
+% ═══════════════════════════════════════════════════════
 \section{Team Contributions}
 
-\subsection*{Work Completed So Far}
-\begin{itemize}
-    \item \textbf{Student A:} Designed and implemented the baseline SimpleCNN architecture (\texttt{models/cnn.py}). Built the full training pipeline with reproducibility features including fixed random seeds, train/validation splitting, and JSON metrics export (\texttt{train.py}). Conducted baseline training experiments and produced the training results table.
+The division of responsibilities follows the roles defined in the project
+instructions. Table~\ref{tab:contributions} summarizes completed and planned
+work per student.
 
-    \item \textbf{Student B:} Implemented the FGSM attack (\texttt{attacks/fgsm.py}) and the PGD attack with random initialization (\texttt{attacks/pgd.py}). Built the multi-epsilon evaluation scripts (\texttt{evaluate\_fgsm.py}, \texttt{evaluate\_pgd.py}) with automated JSON result export. Ran all adversarial robustness evaluations and produced the FGSM and PGD results tables.
+\begin{table}[H]
+\caption{Team Contributions Summary}
+\label{tab:contributions}
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{p{0.19\columnwidth} p{0.37\columnwidth} p{0.37\columnwidth}}
+\hline
+\textbf{Student} & \textbf{Completed (Weeks 1--2)} & \textbf{Planned (Weeks 3--4)} \\
+\hline
+\textbf{Osama Elkhuribi} &
+    Designed and implemented the baseline CNN (\texttt{models/cnn.py});
+    built the full training pipeline with fixed random seeds,
+    train/validation splitting, and JSON metrics export
+    (\texttt{train.py}); produced Table~\ref{tab:training_results}. &
+    Adapt the training pipeline to support adversarial training
+    (FGSM-AT and PGD-AT); maintain checkpoint management for
+    all model variants. \\
+\hline
+\textbf{Mohamed Abdelkhalek} &
+    Implemented FGSM (\texttt{attacks/fgsm.py}) and PGD with random
+    initialization (\texttt{attacks/pgd.py}); built multi-epsilon
+    evaluation scripts with JSON export; produced
+    Tables~\ref{tab:fgsm_results}--\ref{tab:pgd_results}. &
+    Design and execute ablation studies (training epochs, PGD steps,
+    dropout); generate accuracy-vs-epsilon comparison curves. \\
+\hline
+\textbf{Mohamed Abdel Majid } &
+    Implemented the visualization suite (\texttt{visualize\_steps.py});
+    configured reproducible Conda environments for Linux and Windows;
+    authored the project README and drafted this midterm report. &
+    Implement adversarial training scripts (FGSM-AT, PGD-AT);
+    conduct robustness--accuracy trade-off analysis; author the
+    final report. \\
+\hline
+\end{tabular}
+\end{table}
 
-    \item \textbf{Student C:} Created the six-figure visualization suite (\texttt{visualize\_steps.py}) including clean predictions, attack breakdowns, epsilon sweeps, and PGD settings comparisons. Set up the Conda environment files for Linux and Windows. Authored the project README and drafted the midterm report.
-\end{itemize}
-
-\subsection*{Future Responsibilities}
-\begin{itemize}
-    \item \textbf{Student A:} Adapt the training pipeline for adversarial training (FGSM-AT and PGD-AT variants).
-    \item \textbf{Student B:} Design and execute ablation studies; generate accuracy-vs-epsilon comparison plots.
-    \item \textbf{Student C:} Conduct trade-off analysis, error analysis, and write the final report.
-\end{itemize}
 
 
 % ═══════════════════════════════════════════════════════
@@ -531,29 +501,34 @@ The following experiments are planned for the second half of the project:
 \begin{thebibliography}{00}
 
 \bibitem{szegedy2014}
-C. Szegedy, W. Zaremba, I. Sutskever, J. Bruna, D. Erhan, I. Goodfellow,
-and R. Fergus,
+C.~Szegedy, W.~Zaremba, I.~Sutskever, J.~Bruna, D.~Erhan,
+I.~Goodfellow, and R.~Fergus,
 ``Intriguing properties of neural networks,''
 in \textit{Proc. Int. Conf. Learn. Representations (ICLR)}, 2014.
 
 \bibitem{goodfellow2015fgsm}
-I. J. Goodfellow, J. Shlens, and C. Szegedy,
+I.~J. Goodfellow, J.~Shlens, and C.~Szegedy,
 ``Explaining and harnessing adversarial examples,''
 in \textit{Proc. Int. Conf. Learn. Representations (ICLR)}, 2015.
 [Online]. Available: \url{https://arxiv.org/abs/1412.6572}
 
 \bibitem{madry2018pgd}
-A. Madry, A. Makelov, L. Schmidt, D. Tsipras, and A. Vladu,
+A.~Madry, A.~Makelov, L.~Schmidt, D.~Tsipras, and A.~Vladu,
 ``Towards deep learning models resistant to adversarial attacks,''
 in \textit{Proc. Int. Conf. Learn. Representations (ICLR)}, 2018.
 [Online]. Available: \url{https://arxiv.org/abs/1706.06083}
 
 \bibitem{kurakin2017scale}
-A. Kurakin, I. J. Goodfellow, and S. Bengio,
+A.~Kurakin, I.~J. Goodfellow, and S.~Bengio,
 ``Adversarial machine learning at scale,''
 in \textit{Proc. Int. Conf. Learn. Representations (ICLR)}, 2017.
 [Online]. Available: \url{https://arxiv.org/abs/1611.01236}
 
-\end{thebibliography}
+\bibitem{madrylab2018code}
+MadryLab,
+``CIFAR-10 adversarial examples challenge,''
+GitHub repository, 2018.
+[Online]. Available: \url{https://github.com/MadryLab/cifar10_challenge}
 
+\end{thebibliography}
 \end{document}

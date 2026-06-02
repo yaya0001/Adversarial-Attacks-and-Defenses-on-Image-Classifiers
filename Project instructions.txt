@@ -1,0 +1,36 @@
+5. Adversarial Attacks and Defenses on Image Classifiers
+Project Title: Exploring Adversarial Robustness of Lightweight Image Classifiers
+Project Aims & Objectives:
+1. Implement simple adversarial attacks (FGSM, PGD) on a small CNN.
+2. Apply basic adversarial training as a defense.
+3. Compare clean vs. robust accuracy.
+4. Analyze trade-offs in robustness vs. performance.
+Scope of Work:
+• Use small subset of CIFAR-10 or MNIST.
+• Out of scope: complex certified defenses.
+Expected Deliverables:
+1. Attack & defense implementations.
+2. Robustness evaluation plots.
+3. Final report & repo.
+Prerequisite Knowledge / Skills:
+• CNNs, gradient computation
+• Basic security concepts (adversarial examples)
+Role of Each Student:
+• Student A: Baseline CNN and training.
+• Student B: Implement attacks (FGSM, PGD).
+• Student C: Implement adversarial training and analysis.
+Paper(s) Link:
+• Madry et al., “Towards Deep Learning Models Resistant to Adversarial Attacks,” ICLR 2018.
+https://arxiv.org/abs/1706.06083
+• Kurakin et al., “Adversarial Machine Learning at Scale,” ICLR 2017.
+https://arxiv.org/abs/1611.01236
+Data Link:
+• CIFAR-10: https://www.cs.toronto.edu/~kriz/cifar.html
+Code Link (reference):
+• MadryLab adversarial examples:
+https://github.com/MadryLab/cifar10_challenge
+Timeline:
+• Week 1: Baseline CNN; train on small dataset.
+• Week 2: Implement FGSM/PGD; midterm report.
+• Week 3: Adversarial training; track robust accuracy.
+• Week 4: Summarize trade-offs; finalize
