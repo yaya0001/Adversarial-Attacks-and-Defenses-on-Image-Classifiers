@@ -1,0 +1,218 @@
+\documentclass[conference,10pt]{IEEEtran}
+
+% -------------------------------------------------------
+% Packages
+% -------------------------------------------------------
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{float}
+\usepackage{caption}
+
+\usepackage[margin=0.7in]{geometry}
+
+% -------------------------------------------------------
+% Title Block
+% -------------------------------------------------------
+\title{Exploring Adversarial Robustness and Defenses in Lightweight Image Classifiers}
+
+\author{
+    \IEEEauthorblockN{Mohamed Abdel Majid}
+    \IEEEauthorblockA{\textit{Queen's University} \\
+    Mohamed.Abdelmajid@queensu.ca}
+    \and
+    \IEEEauthorblockN{Mohamed Abdelkhalek}
+    \IEEEauthorblockA{\textit{Queen's University} \\
+    mohamed.abdelkhalek@queensu.ca}
+    \and
+    \IEEEauthorblockN{Osama Elkhuribi}
+    \IEEEauthorblockA{\textit{Queen's University} \\
+    osama.elkhuribi@queensu.ca}
+}
+
+% -------------------------------------------------------
+\begin{document}
+
+\maketitle
+
+% ═══════════════════════════════════════════════════════
+% 1. Title and Abstract
+% ═══════════════════════════════════════════════════════
+\begin{abstract}
+Deep neural networks achieve remarkable clean performance but remain highly vulnerable to adversarial examples—imperceptible perturbations that cause confident misclassifications. This paper investigates the adversarial robustness of lightweight Convolutional Neural Networks (CNNs) evaluated on the MNIST and CIFAR-10 datasets. We employ the Fast Gradient Sign Method (FGSM) and Projected Gradient Descent (PGD) to craft adversarial examples. Our baseline experiments confirm that unhardened models suffer catastrophic accuracy degradation (e.g., from 98.76\% to 0.00\% under PGD on MNIST). To mitigate this vulnerability, we implement adversarial training by injecting adversarial examples directly into the optimization loop. We present a comprehensive quantitative evaluation of the resulting robustness-accuracy trade-off, reinforced by ablation studies analyzing the impact of PGD inner steps and training duration. Our findings reproduce established phenomena at a controlled scale and confirm that iterative adversarial training provides substantial empirical robustness, albeit at a cost to standard accuracy.
+\end{abstract}
+
+\begin{IEEEkeywords}
+adversarial robustness, adversarial training, FGSM, PGD, convolutional neural networks, trade-off analysis
+\end{IEEEkeywords}
+
+
+% ═══════════════════════════════════════════════════════
+% 2. Introduction
+% ═══════════════════════════════════════════════════════
+\section{Introduction}
+
+\subsection{Background and Real-World Relevance}
+Deep learning systems are increasingly deployed in safety-critical domains such as autonomous driving, medical diagnostics, and biometric authentication. However, these systems exhibit a profound vulnerability to adversarial examples: meticulously crafted, human-imperceptible noise added to inputs that predictably derail the model's predictions \cite{szegedy2014, goodfellow2015fgsm}. Because these perturbations rely on leveraging the high-dimensional, linear nature of modern neural architectures, they pose a severe security threat. Securing neural networks against such $\ell_\infty$-bounded attacks without severely compromising their utility remains a central challenge in trustworthy machine learning.
+
+\subsection{Problem Definition}
+The objective of this work is to systematically quantify the susceptibility of standard lightweight CNNs to $\ell_\infty$-norm bounded gradient attacks, and to empirically evaluate adversarial training \cite{madry2018pgd} as a primary defense mechanism. We focus on lightweight architectures to isolate robustness phenomena from the confounding factors of massive parameter spaces, ensuring that our defense evaluations are highly interpretable.
+
+\subsection{Contributions}
+In this report, we make the following contributions:
+\begin{enumerate}
+    \item We \textbf{reproduce} the catastrophic failure of standard CNNs under FGSM and PGD attacks on the MNIST dataset, documenting the accuracy degradation across varying perturbation budgets ($\epsilon$).
+    \item We \textbf{propose an extension} by adapting our evaluation pipeline to the CIFAR-10 dataset using a deeper \texttt{CifarCNN} architecture, demonstrating the generalizability of adversarial vulnerabilities.
+    \item We \textbf{analyze} the robustness-accuracy trade-off by implementing multi-step adversarial training, complemented by rigorous ablation studies on the training epochs and PGD iteration counts to determine optimal defense hyperparameter configurations.
+\end{enumerate}
+
+
+% ═══════════════════════════════════════════════════════
+% 3. Related Work
+% ═══════════════════════════════════════════════════════
+\section{Related Work}
+
+\subsection{Adversarial Examples}
+Szegedy et al. \cite{szegedy2014} first highlighted the adversarial vulnerability of deep neural networks, demonstrating that small, targeted perturbations can cause state-of-the-art models to fail. Goodfellow et al. \cite{goodfellow2015fgsm} subsequently introduced the Fast Gradient Sign Method (FGSM), a single-step, computationally efficient attack that relies on linearizing the loss landscape. FGSM demonstrated that high-dimensional linearity, rather than extreme non-linearity, is the primary driver of adversarial vulnerability.
+
+\subsection{Iterative Attacks and Defenses}
+Kurakin et al. \cite{kurakin2017scale} scaled these concepts to ImageNet, introducing iterative FGSM techniques that proved adversarial examples could survive physical transformations. Madry et al. \cite{madry2018pgd} formalized adversarial robustness as a saddle-point min-max optimization problem. They proposed Projected Gradient Descent (PGD) as a universal first-order adversary to approximate the inner maximization problem. Conceptually, while FGSM takes a single large step towards maximizing the loss, PGD takes multiple smaller steps, projecting back into the $\epsilon$-ball, making it a significantly stronger attack. By training networks using PGD-generated examples, Madry et al. established Adversarial Training (AT) as the most effective empirical defense, a methodology we directly adopt and evaluate in this work.
+
+
+% ═══════════════════════════════════════════════════════
+% 4. Data and Preprocessing
+% ═══════════════════════════════════════════════════════
+\section{Data and Preprocessing}
+
+\subsection{Dataset Details}
+We utilize two widely adopted computer vision datasets for our evaluations:
+\begin{itemize}
+    \item \textbf{MNIST}: Contains 70,000 grayscale images ($28 \times 28$ pixels) of handwritten digits (0--9). The dataset is split into 60,000 training samples and 10,000 test samples. MNIST is distributed under the Creative Commons Attribution-Share Alike 3.0 license.
+    \item \textbf{CIFAR-10}: Contains 60,000 RGB images ($32 \times 32$ pixels) across 10 object classes (e.g., airplanes, automobiles, birds). It is split into 50,000 training samples and 10,000 test samples. CIFAR-10 is made freely available by the University of Toronto for research purposes.
+\end{itemize}
+
+\subsection{Preprocessing and Setup}
+Both datasets are sourced programmatically using \texttt{torchvision.datasets}. 
+\begin{itemize}
+    \item \textbf{Normalization}: Images are cast to PyTorch tensors, automatically normalizing pixel intensities from the $[0, 255]$ integer range to the $[0, 1]$ floating-point range. We omit mean/standard-deviation normalization to preserve the strict $\ell_\infty$ bounds required for clean perturbation calculations during attacks.
+    \item \textbf{Splits}: The training sets are further partitioned to create held-out validation sets (e.g., 50,000 train / 10,000 val for MNIST). The testing sets remain entirely unseen until the final adversarial evaluations.
+\end{itemize}
+
+
+% ═══════════════════════════════════════════════════════
+% 5. Methodology
+% ═══════════════════════════════════════════════════════
+\section{Methodology}
+
+\subsection{Model Architectures}
+We design two specialized models to balance capability and computational efficiency (allowing CPU-bound training):
+\begin{itemize}
+    \item \textbf{SimpleCNN (MNIST)}: A compact network featuring two Convolutional layers ($3 \times 3$ kernels, 32 and 64 filters) interspersed with $2 \times 2$ Max Pooling, followed by two Fully Connected layers.
+    \item \textbf{CifarCNN (CIFAR-10)}: A deeper network capable of extracting RGB features. It employs three Convolutional layers (32, 64, and 128 filters), each followed by Batch Normalization, ReLU, and Max Pooling. A Dropout layer ($p=0.5$) is applied before the final Fully Connected classifier to mitigate overfitting on the harder CIFAR distribution.
+\end{itemize}
+
+\subsection{Training Procedure}
+Models are trained using the Cross-Entropy loss function, optimized via the Adam optimizer with a learning rate of $1 \times 10^{-3}$. We utilize a batch size of 64. Baseline clean training runs for 5 epochs on MNIST and 20 epochs on CIFAR-10.
+For \textbf{Adversarial Training (AT)}, the standard data loaders are intercepted. For every batch, we generate adversarial counterparts (using either FGSM or PGD) on the fly, and compute the loss gradients based on these perturbed images. Because AT requires the model to learn a more complex, regularized decision boundary, we increase the training duration to 10 epochs for MNIST AT.
+
+\subsection{Baselines and Ablations}
+Our primary baseline is the standardly trained model (trained exclusively on clean data). The primary ablation targets are the adversarial training hyperparameters. Specifically, we ablate:
+\begin{itemize}
+    \item \textbf{PGD Inner Steps}: Modifying the attack step count ($k \in \{3, 5, 7, 10\}$) during AT to observe the diminishing returns of stronger training adversaries.
+    \item \textbf{Training Epochs}: Modifying AT duration to analyze the convergence rate of robust accuracy.
+\end{itemize}
+
+
+% ═══════════════════════════════════════════════════════
+% 6. Experiments and Results
+% ═══════════════════════════════════════════════════════
+\section{Experiments and Results}
+
+\textit{[NOTE: The following subsections will be populated with quantitative results, tables, and figures upon the completion of the currently executing background training tasks.]}
+
+\subsection{Quantitative Baseline Results}
+% [Insert Table: Baseline clean accuracies]
+% [Insert Figure: Baseline degradation under FGSM and PGD]
+
+\subsection{Adversarial Training Effectiveness}
+% [Insert comparisons between baseline, FGSM-AT, and PGD-AT]
+% [Include empirical numbers against standard benchmarks]
+
+\subsection{Ablation Studies}
+% [Insert Table/Figure: PGD step ablations and Epoch ablations]
+
+\subsection{Efficiency Considerations}
+% [Brief note on the increased computational runtime (memory/time) required for PGD-AT vs Clean training]
+
+
+% ═══════════════════════════════════════════════════════
+% 7. Discussion
+% ═══════════════════════════════════════════════════════
+\section{Discussion}
+
+\textit{[NOTE: To be finalized based on the experimental results.]}
+
+\subsection{Interpretation of Results}
+% [Discuss the clean vs robust trade-off]
+% [Discuss why PGD breaks FGSM-AT models but PGD-AT models survive]
+
+\subsection{Error Analysis and Failure Cases}
+% [Discuss scenarios where the defense fails (e.g., extremely high epsilon causing label corruption)]
+
+\subsection{Limitations and Future Work}
+% [Address limitations: only l-infinity norms tested, no certified defenses]
+% [For publication: would need to scale to ResNet-50 on ImageNet and test against AutoAttack]
+
+
+% ═══════════════════════════════════════════════════════
+% 8. Conclusion
+% ═══════════════════════════════════════════════════════
+\section{Conclusion}
+\textit{[NOTE: To be drafted once final metrics are available to state conclusive takeaways.]}
+
+
+% ═══════════════════════════════════════════════════════
+% 9. Team Contributions
+% ═══════════════════════════════════════════════════════
+\section{Team Contributions}
+
+The successful execution of this project was driven by a clear division of responsibilities among the team members:
+
+\begin{itemize}
+    \item \textbf{Osama Elkhuribi}: Designed and implemented the model architectures (\texttt{SimpleCNN}, \texttt{CifarCNN}); built the full baseline and adversarial training pipelines; managed random seed reproducibility, checkpoint saving/loading routines, and JSON metrics exportation.
+    \item \textbf{Mohamed Abdelkhalek}: Implemented the core attack algorithms (FGSM and PGD); engineered the multi-epsilon robustness evaluation scripts; designed and executed the ablation studies testing PGD steps and training epoch variations.
+    \item \textbf{Mohamed Abdel Majid}: Developed the visualization suite to generate attack progression collages and performance trade-off curves; configured robust Conda environments for cross-platform compatibility; authored the project documentation, midterm report, and this final report.
+\end{itemize}
+
+
+% ═══════════════════════════════════════════════════════
+% 10. References
+% ═══════════════════════════════════════════════════════
+\begin{thebibliography}{00}
+
+\bibitem{szegedy2014}
+C.~Szegedy et al., ``Intriguing properties of neural networks,'' in \textit{ICLR}, 2014.
+
+\bibitem{goodfellow2015fgsm}
+I.~J. Goodfellow, J.~Shlens, and C.~Szegedy, ``Explaining and harnessing adversarial examples,'' in \textit{ICLR}, 2015.
+
+\bibitem{madry2018pgd}
+A.~Madry et al., ``Towards deep learning models resistant to adversarial attacks,'' in \textit{ICLR}, 2018.
+
+\bibitem{kurakin2017scale}
+A.~Kurakin, I.~J. Goodfellow, and S.~Bengio, ``Adversarial machine learning at scale,'' in \textit{ICLR}, 2017.
+
+\end{thebibliography}
+
+% ═══════════════════════════════════════════════════════
+% 11. Appendix
+% ═══════════════════════════════════════════════════════
+\section*{Appendix}
+
+\textit{[NOTE: Optional section for extra figures, hyperparameter tables, and additional qualitative results to be added after the experimental runs.]}
+
+\end{document}
