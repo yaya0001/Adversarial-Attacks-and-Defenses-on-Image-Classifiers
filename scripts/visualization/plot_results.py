@@ -16,6 +16,10 @@ Usage:
     python plot_results.py
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
 import json
 import os
 
@@ -26,8 +30,8 @@ import numpy as np
 # ──────────────────────────────────────────────────────────────
 #  Configuration
 # ──────────────────────────────────────────────────────────────
-FIGURE_DIR = "reports/figures"
-RESULTS_DIR = "results"
+FIGURE_DIR = "../../reports/figures"
+RESULTS_DIR = "../../results"
 DPI = 300
 
 # Paths to JSON result files

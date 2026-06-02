@@ -11,6 +11,10 @@ Usage:
     python evaluate_all.py
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
 import json
 import os
 import random
@@ -42,8 +46,8 @@ torch.backends.cudnn.benchmark = False
 #  Configuration
 # ──────────────────────────────────────────────────────────────
 BATCH_SIZE = 64
-DATA_DIR = "./data"
-RESULTS_DIR = "results"
+DATA_DIR = "../../data"
+RESULTS_DIR = "../../results"
 RESULTS_PATH = os.path.join(RESULTS_DIR, "full_evaluation.json")
 
 # Model checkpoints to evaluate

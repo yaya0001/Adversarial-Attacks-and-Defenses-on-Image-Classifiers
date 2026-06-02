@@ -17,6 +17,10 @@ Usage:
     python visualize_cifar.py
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
 import os
 import random
 
@@ -36,9 +40,9 @@ from attacks.pgd import pgd_attack
 # ──────────────────────────────────────────────────────────────
 SEED = 42
 BATCH_SIZE = 16
-DATA_DIR = "./data"
-CHECKPOINT_PATH = "results/checkpoints/cifar10_cnn.pth"
-FIGURE_DIR = "reports/figures"
+DATA_DIR = "../../data"
+CHECKPOINT_PATH = "../../results/checkpoints/cifar10_cnn.pth"
+FIGURE_DIR = "../../reports/figures"
 DPI = 300
 
 # CIFAR-10 class names

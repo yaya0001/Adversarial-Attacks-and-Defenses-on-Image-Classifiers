@@ -17,6 +17,10 @@ Usage:
     python train_adversarial_cifar.py --mode both
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
 import argparse
 import json
 import os
@@ -56,9 +60,9 @@ def set_seed(seed: int = SEED) -> None:
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-3
 EPOCHS = 15
-DATA_DIR = "./data"
-CHECKPOINT_DIR = "results/checkpoints"
-METRICS_DIR = "results"
+DATA_DIR = "../../data"
+CHECKPOINT_DIR = "../../results/checkpoints"
+METRICS_DIR = "../../results"
 
 # CIFAR-10 standard adversarial training parameters (Madry et al.)
 AT_EPSILON = 8 / 255       # ≈ 0.031 — standard CIFAR-10 ℓ∞ budget

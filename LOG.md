@@ -208,17 +208,47 @@ data/
 
 ---
 
-## Week 3 — [To be filled in as work progresses]
+## Week 3 — Adversarial Training & CIFAR-10 Extension
 
 ### Session 7
-**Date:** 
-**Present:**
+**Date:** 2026-06-02
+**Present:** All three members
 
 **Work done:**
+- Osama implemented `train_adversarial.py` to support FGSM-AT and PGD-AT (Madry et al. min-max formulation) on MNIST.
+- Created `evaluate_all.py` to comprehensively test Baseline, FGSM-AT, and PGD-AT models across various FGSM and PGD epsilon settings.
+- Mohamed Abdelkhalek created `ablation_study.py` to test the effect of PGD inner steps (3, 5, 7, 10) and training epochs (5, 10, 15) on robust accuracy.
+- Mohamed Abdel Majid implemented `plot_results.py` to generate publication-quality figures from the JSON evaluation data.
 
 **Decisions made:**
+- Adversarial training is run for 10 epochs (vs 5 for baseline) to allow the model more time to adapt to perturbations.
+- Decided to extend the project to CIFAR-10 (a stretch goal) to demonstrate robustness across datasets.
 
-**Issues:**
+**Issues:** None.
+
+---
+
+### Session 8
+**Date:** 2026-06-02
+**Present:** All three members
+
+**Work done:**
+- Designed a new `CifarCNN` architecture (3 conv layers + BN + dropout) to handle CIFAR-10's RGB images while remaining lightweight enough for CPU training.
+- Replicated the entire experimental pipeline for CIFAR-10:
+  - `train_cifar.py` (baseline)
+  - `train_adversarial_cifar.py`
+  - `evaluate_all_cifar.py`
+  - `visualize_cifar.py`
+  - `ablation_study_cifar.py`
+  - `plot_results_cifar.py`
+- Started background execution of MNIST FGSM-AT training.
+
+**Decisions made:**
+- Used standard CIFAR-10 attack parameters: ε = 8/255 (≈ 0.031) and α = 2/255.
+- Reduced the scope of CIFAR-10 ablation studies to save CPU compute time.
+- Initiated a project repository restructuring to separate scripts from the `src/` library modules.
+
+**Issues:** None.
 
 ---
 

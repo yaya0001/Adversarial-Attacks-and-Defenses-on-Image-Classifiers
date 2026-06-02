@@ -1,0 +1,21 @@
+{
+  "clean_accuracy": 98.65,
+  "fgsm_results": [
+    {
+      "epsilon": 0.05,
+      "accuracy": 94.1
+    },
+    {
+      "epsilon": 0.1,
+      "accuracy": 80.19
+    },
+    {
+      "epsilon": 0.2,
+      "accuracy": 22.87
+    },
+    {
+      "epsilon": 0.3,
+      "accuracy": 4.14
+    }
+  ]
+}

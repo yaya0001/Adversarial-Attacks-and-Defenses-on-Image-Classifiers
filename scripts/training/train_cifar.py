@@ -1,17 +1,28 @@
 """
-Model Training Script
-=====================
-Trains a SimpleCNN on the MNIST dataset using the Adam optimizer
-and Cross-Entropy loss. After training, the model checkpoint is saved
-to ``results/checkpoints/mnist_cnn.pth``.
+CIFAR-10 Baseline Training Script
+====================================
+Trains a CifarCNN on the CIFAR-10 dataset using the Adam optimizer
+and Cross-Entropy loss.  After training, the model checkpoint is saved
+to ``results/checkpoints/cifar10_cnn.pth``.
+
+Data augmentation:
+    - RandomHorizontalFlip
+    - RandomCrop(32, padding=4)
+    (standard CIFAR-10 augmentation — applied only during training)
+
+Note: pixel values are kept in [0, 1] (no channel-wise normalisation)
+so that adversarial perturbations can be applied directly.
 
 Reproducibility:
-    A fixed random seed (42) is set across Python, NumPy, and PyTorch
-    to ensure deterministic, reproducible training runs.
+    A fixed random seed (42) is set across Python, NumPy, and PyTorch.
 
 Usage:
-    python src/train.py
+    python train_cifar.py
 """
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
 import json
 import os
@@ -25,7 +36,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
-from models.cnn import SimpleCNN
+from models.cifar_cnn import CifarCNN
 
 # ──────────────────────────────────────────────────────────────
 #  Reproducibility
@@ -41,22 +52,32 @@ torch.backends.cudnn.benchmark = False
 # ──────────────────────────────────────────────────────────────
 #  Hyperparameters & Configuration
 # ──────────────────────────────────────────────────────────────
-BATCH_SIZE = 64          # Mini-batch size for training and evaluation
-LEARNING_RATE = 1e-3     # Adam learning rate
-EPOCHS = 5               # Number of full passes over the training set
-DATA_DIR = "./data"      # Root directory for MNIST data
-CHECKPOINT_DIR = "results/checkpoints"
-CHECKPOINT_PATH = os.path.join(CHECKPOINT_DIR, "mnist_cnn.pth")
-METRICS_DIR = "results"
-METRICS_PATH = os.path.join(METRICS_DIR, "training_metrics.json")
+BATCH_SIZE = 64
+LEARNING_RATE = 1e-3
+EPOCHS = 20
+DATA_DIR = "../../data"
+CHECKPOINT_DIR = "../../results/checkpoints"
+CHECKPOINT_PATH = os.path.join(CHECKPOINT_DIR, "cifar10_cnn.pth")
+METRICS_DIR = "../../results"
+METRICS_PATH = os.path.join(METRICS_DIR, "cifar10_training_metrics.json")
 
-# Train/val split sizes (MNIST training set has 60,000 samples)
-TRAIN_SIZE = 50000
-VAL_SIZE = 10000
+# Train/val split sizes (CIFAR-10 training set has 50,000 samples)
+TRAIN_SIZE = 45000
+VAL_SIZE = 5000
+
+# CIFAR-10 class names for reference
+CIFAR10_CLASSES = [
+    "airplane", "automobile", "bird", "cat", "deer",
+    "dog", "frog", "horse", "ship", "truck",
+]
 
 
-def evaluate(model: nn.Module, data_loader: DataLoader, device: torch.device,
-             label: str = "Test") -> float:
+def evaluate(
+    model: nn.Module,
+    data_loader: DataLoader,
+    device: torch.device,
+    label: str = "Test",
+) -> float:
     """
     Evaluate model accuracy on clean (unperturbed) data.
 
@@ -73,13 +94,11 @@ def evaluate(model: nn.Module, data_loader: DataLoader, device: torch.device,
     correct = 0
     total = 0
 
-    with torch.no_grad():  # No gradients needed during evaluation
+    with torch.no_grad():
         for images, labels in data_loader:
             images, labels = images.to(device), labels.to(device)
-
             outputs = model(images)
             _, predicted = torch.max(outputs, dim=1)
-
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
@@ -89,23 +108,28 @@ def evaluate(model: nn.Module, data_loader: DataLoader, device: torch.device,
 
 
 def train() -> None:
-    """
-    Full training pipeline: data loading → training loop → checkpoint saving.
-    """
+    """Full training pipeline: data loading → training loop → checkpoint saving."""
+
     # --- Device Selection ---
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
     # --- Data Preparation ---
-    # MNIST images are 28×28 grayscale; ToTensor() scales pixels to [0, 1]
-    transform = transforms.ToTensor()
+    # Training: augmentation + ToTensor (keep [0, 1] range)
+    train_transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(32, padding=4),
+        transforms.ToTensor(),
+    ])
+    # Evaluation: ToTensor only
+    eval_transform = transforms.ToTensor()
 
-    full_train_dataset = datasets.MNIST(root=DATA_DIR, train=True,
-                                        download=True, transform=transform)
-    test_dataset = datasets.MNIST(root=DATA_DIR, train=False,
-                                  download=True, transform=transform)
+    full_train_dataset = datasets.CIFAR10(root=DATA_DIR, train=True,
+                                          download=True, transform=train_transform)
+    test_dataset = datasets.CIFAR10(root=DATA_DIR, train=False,
+                                    download=True, transform=eval_transform)
 
-    # Split the 60k training set into 50k train / 10k validation
+    # Split 50k training into 45k train / 5k val
     train_dataset, val_dataset = random_split(
         full_train_dataset, [TRAIN_SIZE, VAL_SIZE],
         generator=torch.Generator().manual_seed(SEED)
@@ -116,41 +140,49 @@ def train() -> None:
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # --- Model, Loss, Optimizer ---
-    model = SimpleCNN().to(device)
+    model = CifarCNN().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
+    # Print model parameter count
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"Model parameters: {total_params:,}")
+
     # --- Training Loop ---
-    print(f"\nStarting training for {EPOCHS} epoch(s)…\n")
-    metrics = {"epochs": [], "seed": SEED,
-               "hyperparameters": {"batch_size": BATCH_SIZE,
-                                   "learning_rate": LEARNING_RATE,
-                                   "optimizer": "Adam",
-                                   "epochs": EPOCHS}}
+    print(f"\nStarting CIFAR-10 training for {EPOCHS} epoch(s)…\n")
+    metrics = {
+        "dataset": "CIFAR-10",
+        "epochs": [],
+        "seed": SEED,
+        "hyperparameters": {
+            "batch_size": BATCH_SIZE,
+            "learning_rate": LEARNING_RATE,
+            "optimizer": "Adam",
+            "epochs": EPOCHS,
+        },
+    }
 
     for epoch in range(EPOCHS):
-        model.train()                    # Switch to training mode (enables dropout, BN, etc.)
+        model.train()
         running_loss = 0.0
 
         for images, labels in tqdm(train_loader,
                                    desc=f"Epoch {epoch + 1}/{EPOCHS}"):
             images, labels = images.to(device), labels.to(device)
 
-            optimizer.zero_grad()        # Reset gradients from previous step
-            outputs = model(images)      # Forward pass
+            optimizer.zero_grad()
+            outputs = model(images)
             loss = criterion(outputs, labels)
-            loss.backward()              # Backward pass — compute gradients
-            optimizer.step()             # Update model weights
+            loss.backward()
+            optimizer.step()
 
             running_loss += loss.item()
 
         avg_loss = running_loss / len(train_loader)
         print(f"  Epoch [{epoch + 1}/{EPOCHS}]  ─  Avg Loss: {avg_loss:.4f}")
 
-        # Evaluate on validation set after every epoch
+        # Evaluate on validation and test sets
         val_acc = evaluate(model, val_loader, device, label="Validation")
-
-        # Also evaluate on test set for reporting
         test_acc = evaluate(model, test_loader, device, label="Test")
 
         metrics["epochs"].append({

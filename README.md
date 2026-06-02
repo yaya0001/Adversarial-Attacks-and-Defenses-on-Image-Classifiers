@@ -51,20 +51,40 @@ Everything is implemented in **pure PyTorch**, structured as clean, modular Pyth
 
 ## Project Structure
 
-```
+```text
 Adversarial-Attacks-and-Defenses-on-Image-Classifiers/
-│
-├── src/                        # All source code and execution scripts
-│   ├── attacks/                # Attack implementations (FGSM, PGD)
-│   ├── models/                 # Model architectures (SimpleCNN)
-│   ├── data/                   # Auto-downloaded datasets
-│   ├── reports/                # Generated reports and figures
-│   ├── results/                # Saved checkpoints and metrics (JSON)
-│   ├── train.py                # Model training script
-│   ├── evaluate_fgsm.py        # FGSM robustness evaluation
-│   ├── evaluate_pgd.py         # PGD robustness evaluation
-│   └── visualize_steps.py      # Figure generation script
-│
+├── data/                       # Datasets (MNIST, CIFAR-10)
+├── results/
+│   └── checkpoints/            # Saved model weights
+├── reports/                    # LaTeX reports and generated figures
+│   ├── figures/
+│   └── report.tex              # Final project report
+├── src/                        # Core library code
+│   ├── models/                 # CNN architectures
+│   │   ├── cnn.py              # SimpleCNN (MNIST)
+│   │   └── cifar_cnn.py        # CifarCNN (CIFAR-10)
+│   └── attacks/                # Attack implementations
+│       ├── fgsm.py             # Single-step attack
+│       └── pgd.py              # Multi-step iterative attack
+├── scripts/                    # Execution scripts
+│   ├── training/               # Clean and adversarial training
+│   │   ├── train.py            # Baseline MNIST training
+│   │   ├── train_cifar.py      # Baseline CIFAR-10 training
+│   │   ├── train_adversarial.py
+│   │   └── train_adversarial_cifar.py
+│   ├── evaluation/             # Full eval matrices & ablations
+│   │   ├── evaluate_fgsm.py    # Standalone FGSM eval (MNIST)
+│   │   ├── evaluate_pgd.py     # Standalone PGD eval (MNIST)
+│   │   ├── evaluate_all.py     # Full evaluation matrix (MNIST)
+│   │   ├── evaluate_all_cifar.py
+│   │   ├── ablation_study.py
+│   │   └── ablation_study_cifar.py
+│   └── visualization/          # Plotting and image collages
+│       ├── preview_data.py     # Data preview utility
+│       ├── visualize_steps.py  # Attack progression collages
+│       ├── visualize_cifar.py  # CIFAR-10 visualizations
+│       ├── plot_results.py     # Result curves (MNIST)
+│       └── plot_results_cifar.py
 ├── dl-project-linux.yml        # Conda environment — Linux / macOS
 ├── dl-project-windows.yml      # Conda environment — Windows
 ├── .gitignore                  # Git ignore rules

@@ -9,6 +9,10 @@ Usage:
     python src/preview_data.py
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
 import os
 
 import matplotlib.pyplot as plt
@@ -19,7 +23,7 @@ from torch.utils.data import DataLoader
 #  Configuration
 # ──────────────────────────────────────────────────────────────
 BATCH_SIZE = 16
-DATA_DIR = "./data"
+DATA_DIR = "../../data"
 OUTPUT_PATH = "reports/figures/mnist_samples.png"
 
 # ──────────────────────────────────────────────────────────────

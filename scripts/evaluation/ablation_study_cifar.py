@@ -1,20 +1,19 @@
 """
-Ablation Study Script
-======================
-Runs two ablation experiments on PGD-based adversarial training:
+CIFAR-10 Ablation Study Script
+=================================
+Runs two ablation experiments on PGD-based adversarial training
+for CIFAR-10 (reduced scope for CPU feasibility):
 
-    1. Effect of PGD inner steps during training (3, 5, 7, 10 steps)
-       on final robust accuracy at ε=0.3.
-
-    2. Effect of training epochs (5, 10, 15) on both clean and robust
-       accuracy.
-
-Each ablation trains a model variant from scratch, evaluates it under
-clean and PGD (ε=0.3, 40 iters) conditions, and saves the results.
+    1. Effect of PGD inner steps during training (3, 7 steps)
+    2. Effect of training epochs (10, 15 epochs)
 
 Usage:
-    python ablation_study.py
+    python ablation_study_cifar.py
 """
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
 import json
 import os
@@ -28,8 +27,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
-from models.cnn import SimpleCNN
-from attacks.fgsm import fgsm_attack
+from models.cifar_cnn import CifarCNN
 from attacks.pgd import pgd_attack
 
 # ──────────────────────────────────────────────────────────────
@@ -38,29 +36,29 @@ from attacks.pgd import pgd_attack
 SEED = 42
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-3
-DATA_DIR = "./data"
+DATA_DIR = "../../data"
 CHECKPOINT_DIR = "results/checkpoints/ablation"
-RESULTS_DIR = "results"
-RESULTS_PATH = os.path.join(RESULTS_DIR, "ablation_results.json")
+RESULTS_DIR = "../../results"
+RESULTS_PATH = os.path.join(RESULTS_DIR, "cifar10_ablation_results.json")
 
-# Adversarial training parameters (defaults)
-AT_EPSILON = 0.3
-PGD_ALPHA = 0.01
+# CIFAR-10 AT parameters
+AT_EPSILON = 8 / 255
+PGD_ALPHA = 2 / 255
 DEFAULT_PGD_STEPS = 7
-DEFAULT_EPOCHS = 10
+DEFAULT_EPOCHS = 15
 
-# Evaluation attack (fixed — strongest setting)
-EVAL_PGD_EPSILON = 0.3
-EVAL_PGD_ALPHA = 0.01
-EVAL_PGD_ITERS = 40
+# Evaluation attack (fixed)
+EVAL_PGD_EPSILON = 8 / 255
+EVAL_PGD_ALPHA = 2 / 255
+EVAL_PGD_ITERS = 20
 
-# Ablation configurations
-ABLATION_PGD_STEPS = [3, 5, 7, 10]
-ABLATION_EPOCHS = [5, 10, 15]
+# Reduced ablation scope for CPU
+ABLATION_PGD_STEPS = [3, 7]
+ABLATION_EPOCHS = [10, 15]
 
-# Train/val split sizes
-TRAIN_SIZE = 50000
-VAL_SIZE = 10000
+# Train/val split
+TRAIN_SIZE = 45000
+VAL_SIZE = 5000
 
 
 def set_seed(seed: int = SEED) -> None:
@@ -76,10 +74,10 @@ def set_seed(seed: int = SEED) -> None:
 def get_data_loaders(device: torch.device):
     """Create train, validation, and test data loaders."""
     transform = transforms.ToTensor()
-    full_train = datasets.MNIST(root=DATA_DIR, train=True,
-                                download=True, transform=transform)
-    test_dataset = datasets.MNIST(root=DATA_DIR, train=False,
+    full_train = datasets.CIFAR10(root=DATA_DIR, train=True,
                                   download=True, transform=transform)
+    test_dataset = datasets.CIFAR10(root=DATA_DIR, train=False,
+                                    download=True, transform=transform)
 
     train_ds, val_ds = random_split(
         full_train, [TRAIN_SIZE, VAL_SIZE],
@@ -108,7 +106,7 @@ def evaluate_clean(model: nn.Module, loader: DataLoader,
 
 def evaluate_pgd(model: nn.Module, loader: DataLoader,
                  device: torch.device) -> float:
-    """Measure robust accuracy under the standard PGD evaluation attack."""
+    """Measure robust accuracy under PGD evaluation attack."""
     model.eval()
     correct = total = 0
     for images, labels in loader:
@@ -132,15 +130,10 @@ def train_pgd_at(
     pgd_steps: int,
     tag: str,
 ) -> dict:
-    """
-    Train a PGD-AT model with the specified number of epochs and PGD steps.
-
-    Returns:
-        Dictionary with training info, clean accuracy, and robust accuracy.
-    """
+    """Train a PGD-AT CifarCNN with specified epochs and PGD steps."""
     set_seed(SEED)
 
-    model = SimpleCNN().to(device)
+    model = CifarCNN().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
@@ -174,14 +167,14 @@ def train_pgd_at(
 
     # Save checkpoint
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
-    ckpt_path = os.path.join(CHECKPOINT_DIR, f"{tag}.pth")
+    ckpt_path = os.path.join(CHECKPOINT_DIR, f"cifar10_{tag}.pth")
     torch.save(model.state_dict(), ckpt_path)
 
     # Evaluate
     clean_acc = evaluate_clean(model, test_loader, device)
     robust_acc = evaluate_pgd(model, test_loader, device)
 
-    print(f"    ✓ Clean: {clean_acc:.2f}%  |  Robust (PGD ε=0.3): {robust_acc:.2f}%")
+    print(f"    ✓ Clean: {clean_acc:.2f}%  |  Robust (PGD ε=8/255): {robust_acc:.2f}%")
 
     return {
         "tag": tag,
@@ -193,7 +186,7 @@ def train_pgd_at(
 
 
 def main() -> None:
-    """Run all ablation experiments."""
+    """Run all CIFAR-10 ablation experiments."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
@@ -201,49 +194,41 @@ def main() -> None:
 
     results = {"ablation_pgd_steps": [], "ablation_epochs": []}
 
-    # ──────────────────────────────────────────────────────────
-    #  Ablation 1: Effect of PGD inner steps during training
-    # ──────────────────────────────────────────────────────────
+    # Ablation 1: PGD inner steps
     print(f"\n{'='*60}")
-    print("  Ablation 1: Effect of PGD Inner Steps")
-    print(f"  Fixed: epochs={DEFAULT_EPOCHS}, ε={AT_EPSILON}")
+    print("  CIFAR-10 Ablation 1: PGD Inner Steps")
+    print(f"  Fixed: epochs={DEFAULT_EPOCHS}, ε=8/255")
     print(f"  Varying: pgd_steps ∈ {ABLATION_PGD_STEPS}")
     print(f"{'='*60}")
 
     for steps in ABLATION_PGD_STEPS:
         result = train_pgd_at(
             device, train_loader, val_loader, test_loader,
-            epochs=DEFAULT_EPOCHS,
-            pgd_steps=steps,
+            epochs=DEFAULT_EPOCHS, pgd_steps=steps,
             tag=f"pgd_at_steps_{steps}",
         )
         results["ablation_pgd_steps"].append(result)
 
-    # ──────────────────────────────────────────────────────────
-    #  Ablation 2: Effect of training epochs
-    # ──────────────────────────────────────────────────────────
+    # Ablation 2: Training epochs
     print(f"\n{'='*60}")
-    print("  Ablation 2: Effect of Training Epochs")
-    print(f"  Fixed: pgd_steps={DEFAULT_PGD_STEPS}, ε={AT_EPSILON}")
+    print("  CIFAR-10 Ablation 2: Training Epochs")
+    print(f"  Fixed: pgd_steps={DEFAULT_PGD_STEPS}, ε=8/255")
     print(f"  Varying: epochs ∈ {ABLATION_EPOCHS}")
     print(f"{'='*60}")
 
     for ep in ABLATION_EPOCHS:
         result = train_pgd_at(
             device, train_loader, val_loader, test_loader,
-            epochs=ep,
-            pgd_steps=DEFAULT_PGD_STEPS,
+            epochs=ep, pgd_steps=DEFAULT_PGD_STEPS,
             tag=f"pgd_at_epochs_{ep}",
         )
         results["ablation_epochs"].append(result)
 
-    # ──────────────────────────────────────────────────────────
-    #  Save Results
-    # ──────────────────────────────────────────────────────────
+    # Save
     os.makedirs(RESULTS_DIR, exist_ok=True)
     with open(RESULTS_PATH, "w") as f:
         json.dump(results, f, indent=2)
-    print(f"\n✓ Ablation results saved to: {RESULTS_PATH}")
+    print(f"\n✓ CIFAR-10 ablation results saved to: {RESULTS_PATH}")
 
 
 if __name__ == "__main__":

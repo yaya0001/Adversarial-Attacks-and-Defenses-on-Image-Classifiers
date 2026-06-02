@@ -21,6 +21,10 @@ Usage:
     python train_adversarial.py --mode both
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
 import argparse
 import json
 import os
@@ -60,9 +64,9 @@ def set_seed(seed: int = SEED) -> None:
 BATCH_SIZE = 64
 LEARNING_RATE = 1e-3
 EPOCHS = 10               # AT converges slower → more epochs than baseline (5)
-DATA_DIR = "./data"
-CHECKPOINT_DIR = "results/checkpoints"
-METRICS_DIR = "results"
+DATA_DIR = "../../data"
+CHECKPOINT_DIR = "../../results/checkpoints"
+METRICS_DIR = "../../results"
 
 # Adversarial training parameters
 AT_EPSILON = 0.3           # ℓ∞ perturbation budget during training

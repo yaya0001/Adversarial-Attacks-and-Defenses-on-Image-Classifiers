@@ -21,6 +21,10 @@ Usage:
     python src/visualize_steps.py
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
 import os
 import random
 
@@ -40,9 +44,9 @@ from attacks.pgd import pgd_attack
 # ──────────────────────────────────────────────────────────────
 SEED = 42
 BATCH_SIZE = 16
-DATA_DIR = "./data"
-CHECKPOINT_PATH = "results/checkpoints/mnist_cnn.pth"
-FIGURE_DIR = "reports/figures"
+DATA_DIR = "../../data"
+CHECKPOINT_PATH = "../../results/checkpoints/mnist_cnn.pth"
+FIGURE_DIR = "../../reports/figures"
 DPI = 300  # Resolution for saved figures
 
 # FGSM epsilon values to compare in Figure 5

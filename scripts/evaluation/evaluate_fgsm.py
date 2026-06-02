@@ -17,6 +17,10 @@ Expected output:
     FGSM Accuracy (ε = 0.30):     ~20–40%
 """
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
+
 import json
 import os
 import random
@@ -45,9 +49,9 @@ torch.backends.cudnn.benchmark = False
 #  Configuration
 # ──────────────────────────────────────────────────────────────
 BATCH_SIZE = 64
-DATA_DIR = "./data"
-CHECKPOINT_PATH = "results/checkpoints/mnist_cnn.pth"
-RESULTS_DIR = "results"
+DATA_DIR = "../../data"
+CHECKPOINT_PATH = "../../results/checkpoints/mnist_cnn.pth"
+RESULTS_DIR = "../../results"
 RESULTS_PATH = os.path.join(RESULTS_DIR, "fgsm_evaluation.json")
 
 # Epsilon values to sweep — larger ε ⟹ stronger attack, lower accuracy
