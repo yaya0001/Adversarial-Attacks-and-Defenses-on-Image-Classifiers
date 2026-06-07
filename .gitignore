@@ -17,8 +17,8 @@ build/
 src/data/
 
 # Generated outputs (reproducible via scripts)
-src/results/
-src/reports/
+# src/results/
+# src/reports/
 
 # OS files
 .DS_Store
