@@ -19,9 +19,9 @@ def fgsm_attack(
     Generate adversarial examples using FGSM.
 
     Args:
-        model:   The target classifier
-        images:  Clean input images
-        labels:  Ground-truth labels
+        model: The target classifier
+        images: Clean input images
+        labels: Ground-truth labels
         epsilon: Perturbation magnitude
 
     Returns:
