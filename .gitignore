@@ -34,3 +34,9 @@ Thumbs.db
 *.fdb_latexmk
 *.synctex.gz
 *.toc
+
+data/
+results/checkpoints/
+*.pth
+*.tar.gz
+*.gz

@@ -1,0 +1,146 @@
+{
+  "Baseline": {
+    "clean_accuracy": 79.09,
+    "fgsm_results": [
+      {
+        "epsilon": 0.007843,
+        "epsilon_fraction": "2/255",
+        "accuracy": 23.59
+      },
+      {
+        "epsilon": 0.015686,
+        "epsilon_fraction": "4/255",
+        "accuracy": 6.72
+      },
+      {
+        "epsilon": 0.031373,
+        "epsilon_fraction": "8/255",
+        "accuracy": 2.02
+      },
+      {
+        "epsilon": 0.062745,
+        "epsilon_fraction": "16/255",
+        "accuracy": 2.75
+      }
+    ],
+    "pgd_results": [
+      {
+        "epsilon": 0.015686,
+        "epsilon_fraction": "4/255",
+        "alpha": 0.007843,
+        "iters": 10,
+        "accuracy": 0.15
+      },
+      {
+        "epsilon": 0.031373,
+        "epsilon_fraction": "8/255",
+        "alpha": 0.007843,
+        "iters": 20,
+        "accuracy": 0.0
+      },
+      {
+        "epsilon": 0.062745,
+        "epsilon_fraction": "16/255",
+        "alpha": 0.007843,
+        "iters": 40,
+        "accuracy": 0.0
+      }
+    ]
+  },
+  "FGSM-AT": {
+    "clean_accuracy": 58.38,
+    "fgsm_results": [
+      {
+        "epsilon": 0.007843,
+        "epsilon_fraction": "2/255",
+        "accuracy": 51.69
+      },
+      {
+        "epsilon": 0.015686,
+        "epsilon_fraction": "4/255",
+        "accuracy": 45.56
+      },
+      {
+        "epsilon": 0.031373,
+        "epsilon_fraction": "8/255",
+        "accuracy": 35.27
+      },
+      {
+        "epsilon": 0.062745,
+        "epsilon_fraction": "16/255",
+        "accuracy": 20.26
+      }
+    ],
+    "pgd_results": [
+      {
+        "epsilon": 0.015686,
+        "epsilon_fraction": "4/255",
+        "alpha": 0.007843,
+        "iters": 10,
+        "accuracy": 44.61
+      },
+      {
+        "epsilon": 0.031373,
+        "epsilon_fraction": "8/255",
+        "alpha": 0.007843,
+        "iters": 20,
+        "accuracy": 31.24
+      },
+      {
+        "epsilon": 0.062745,
+        "epsilon_fraction": "16/255",
+        "alpha": 0.007843,
+        "iters": 40,
+        "accuracy": 11.41
+      }
+    ]
+  },
+  "PGD-AT": {
+    "clean_accuracy": 55.12,
+    "fgsm_results": [
+      {
+        "epsilon": 0.007843,
+        "epsilon_fraction": "2/255",
+        "accuracy": 50.08
+      },
+      {
+        "epsilon": 0.015686,
+        "epsilon_fraction": "4/255",
+        "accuracy": 45.05
+      },
+      {
+        "epsilon": 0.031373,
+        "epsilon_fraction": "8/255",
+        "accuracy": 36.36
+      },
+      {
+        "epsilon": 0.062745,
+        "epsilon_fraction": "16/255",
+        "accuracy": 22.5
+      }
+    ],
+    "pgd_results": [
+      {
+        "epsilon": 0.015686,
+        "epsilon_fraction": "4/255",
+        "alpha": 0.007843,
+        "iters": 10,
+        "accuracy": 44.58
+      },
+      {
+        "epsilon": 0.031373,
+        "epsilon_fraction": "8/255",
+        "alpha": 0.007843,
+        "iters": 20,
+        "accuracy": 33.56
+      },
+      {
+        "epsilon": 0.062745,
+        "epsilon_fraction": "16/255",
+        "alpha": 0.007843,
+        "iters": 40,
+        "accuracy": 14.4
+      }
+    ]
+  }
+}

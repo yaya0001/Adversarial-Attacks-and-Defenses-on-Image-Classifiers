@@ -1,0 +1,105 @@
+{
+  "dataset": "CIFAR-10",
+  "mode": "fgsm-at",
+  "epochs": [
+    {
+      "epoch": 1,
+      "avg_loss": 2.1076,
+      "val_accuracy": 41.92,
+      "test_accuracy": 42.61
+    },
+    {
+      "epoch": 2,
+      "avg_loss": 1.9627,
+      "val_accuracy": 43.68,
+      "test_accuracy": 44.52
+    },
+    {
+      "epoch": 3,
+      "avg_loss": 1.9144,
+      "val_accuracy": 46.04,
+      "test_accuracy": 45.54
+    },
+    {
+      "epoch": 4,
+      "avg_loss": 1.8855,
+      "val_accuracy": 49.24,
+      "test_accuracy": 49.66
+    },
+    {
+      "epoch": 5,
+      "avg_loss": 1.8643,
+      "val_accuracy": 50.42,
+      "test_accuracy": 50.82
+    },
+    {
+      "epoch": 6,
+      "avg_loss": 1.8434,
+      "val_accuracy": 51.74,
+      "test_accuracy": 51.8
+    },
+    {
+      "epoch": 7,
+      "avg_loss": 1.8253,
+      "val_accuracy": 52.96,
+      "test_accuracy": 52.75
+    },
+    {
+      "epoch": 8,
+      "avg_loss": 1.8093,
+      "val_accuracy": 52.5,
+      "test_accuracy": 53.36
+    },
+    {
+      "epoch": 9,
+      "avg_loss": 1.7911,
+      "val_accuracy": 54.42,
+      "test_accuracy": 54.61
+    },
+    {
+      "epoch": 10,
+      "avg_loss": 1.7836,
+      "val_accuracy": 55.22,
+      "test_accuracy": 55.65
+    },
+    {
+      "epoch": 11,
+      "avg_loss": 1.7706,
+      "val_accuracy": 56.14,
+      "test_accuracy": 56.28
+    },
+    {
+      "epoch": 12,
+      "avg_loss": 1.7584,
+      "val_accuracy": 56.14,
+      "test_accuracy": 56.15
+    },
+    {
+      "epoch": 13,
+      "avg_loss": 1.7521,
+      "val_accuracy": 55.6,
+      "test_accuracy": 55.71
+    },
+    {
+      "epoch": 14,
+      "avg_loss": 1.7384,
+      "val_accuracy": 58.18,
+      "test_accuracy": 57.52
+    },
+    {
+      "epoch": 15,
+      "avg_loss": 1.7295,
+      "val_accuracy": 58.1,
+      "test_accuracy": 58.38
+    }
+  ],
+  "seed": 42,
+  "hyperparameters": {
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "optimizer": "Adam",
+    "epochs": 15,
+    "at_epsilon": 0.031373,
+    "at_epsilon_fraction": "8/255"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "dataset": "CIFAR-10",
+  "mode": "pgd-at",
+  "epochs": [
+    {
+      "epoch": 1,
+      "avg_loss": 2.1028,
+      "val_accuracy": 41.18,
+      "test_accuracy": 40.97
+    },
+    {
+      "epoch": 2,
+      "avg_loss": 1.9671,
+      "val_accuracy": 44.28,
+      "test_accuracy": 45.14
+    },
+    {
+      "epoch": 3,
+      "avg_loss": 1.9312,
+      "val_accuracy": 45.62,
+      "test_accuracy": 45.68
+    },
+    {
+      "epoch": 4,
+      "avg_loss": 1.9057,
+      "val_accuracy": 49.58,
+      "test_accuracy": 49.73
+    },
+    {
+      "epoch": 5,
+      "avg_loss": 1.8836,
+      "val_accuracy": 51.66,
+      "test_accuracy": 51.33
+    },
+    {
+      "epoch": 6,
+      "avg_loss": 1.8619,
+      "val_accuracy": 48.42,
+      "test_accuracy": 48.93
+    },
+    {
+      "epoch": 7,
+      "avg_loss": 1.8485,
+      "val_accuracy": 51.96,
+      "test_accuracy": 51.84
+    },
+    {
+      "epoch": 8,
+      "avg_loss": 1.8369,
+      "val_accuracy": 53.44,
+      "test_accuracy": 53.35
+    },
+    {
+      "epoch": 9,
+      "avg_loss": 1.8247,
+      "val_accuracy": 53.2,
+      "test_accuracy": 53.69
+    },
+    {
+      "epoch": 10,
+      "avg_loss": 1.8133,
+      "val_accuracy": 52.94,
+      "test_accuracy": 53.54
+    },
+    {
+      "epoch": 11,
+      "avg_loss": 1.8054,
+      "val_accuracy": 54.18,
+      "test_accuracy": 55.08
+    },
+    {
+      "epoch": 12,
+      "avg_loss": 1.7971,
+      "val_accuracy": 54.92,
+      "test_accuracy": 55.05
+    },
+    {
+      "epoch": 13,
+      "avg_loss": 1.7835,
+      "val_accuracy": 56.48,
+      "test_accuracy": 55.85
+    },
+    {
+      "epoch": 14,
+      "avg_loss": 1.7819,
+      "val_accuracy": 54.86,
+      "test_accuracy": 55.33
+    },
+    {
+      "epoch": 15,
+      "avg_loss": 1.7763,
+      "val_accuracy": 55.32,
+      "test_accuracy": 55.12
+    }
+  ],
+  "seed": 42,
+  "hyperparameters": {
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "optimizer": "Adam",
+    "epochs": 15,
+    "at_epsilon": 0.031373,
+    "at_epsilon_fraction": "8/255",
+    "pgd_alpha": 0.007843,
+    "pgd_alpha_fraction": "2/255",
+    "pgd_steps": 7
+  }
+}

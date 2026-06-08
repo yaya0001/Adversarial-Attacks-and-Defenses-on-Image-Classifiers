@@ -49,9 +49,9 @@ RESULTS_PATH = os.path.join(RESULTS_DIR, "cifar10_full_evaluation.json")
 
 # Model checkpoints
 MODELS = {
-    "Baseline": "results/checkpoints/cifar10_cnn.pth",
-    "FGSM-AT":  "results/checkpoints/cifar10_cnn_fgsm_at.pth",
-    "PGD-AT":   "results/checkpoints/cifar10_cnn_pgd_at.pth",
+    "Baseline": "../../results/checkpoints/cifar10_cnn.pth",
+    "FGSM-AT":  "../../results/checkpoints/cifar10_cnn_fgsm_at.pth",
+    "PGD-AT":   "../../results/checkpoints/cifar10_cnn_pgd_at.pth",
 }
 
 # Standard CIFAR-10 ℓ∞ epsilon values
