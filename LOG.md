@@ -1,4 +1,4 @@
-# Development Log — Adversarial Attacks and Defenses on Image Classifiers
+# Development Log - Adversarial Attacks and Defenses on Image Classifiers
 ## Project 5 | Queen's University | Deep Learning Course
 
 **Team:**
@@ -11,8 +11,6 @@
 ## Week 1
 
 ### Session 1
-**Present:** All three members
-
 **Work done:**
 - Read and discussed the three core papers for the project:
   - Goodfellow et al. (2015) — FGSM
@@ -40,8 +38,6 @@
 ---
 
 ### Session 2
-**Present:** Osama, Mohamed Abdelkhalek
-
 **Work done:**
 - Osama set up the project directory structure:
 src/models/
@@ -71,8 +67,6 @@ data/
 ---
 
 ### Session 3
-**Present:** All three members
-
 **Work done:**
 - Osama completed `train.py`:
   - Adam optimizer, lr=1e-3, batch size=64
@@ -106,8 +100,6 @@ data/
 ## Week 2
 
 ### Session 4
-**Present:** Osama, Mohamed Abdelkhalek
-
 **Work done:**
 - Mohamed Abdelkhalek implemented FGSM in `src/attacks/fgsm.py`.
   Formula: `x_adv = x + eps * sign(grad_x L(theta, x, y))`
@@ -141,8 +133,6 @@ data/
 ---
 
 ### Session 5
-**Present:** All three members
-
 **Work done:**
 - Mohamed Abdelkhalek implemented PGD in `src/attacks/pgd.py`.
   Implemented as iterative FGSM with projection back onto the
@@ -181,8 +171,6 @@ data/
 ---
 
 ### Session 6
-**Present:** All three members
-
 **Work done:**
 - Wrote and finalized the midterm report in IEEE two-column
   format covering: abstract, introduction, related work,
@@ -212,8 +200,6 @@ data/
 
 ### Session 7
 **Date:** 2026-06-02
-**Present:** All three members
-
 **Work done:**
 - Osama implemented `train_adversarial.py` to support FGSM-AT and PGD-AT (Madry et al. min-max formulation) on MNIST.
 - Created `evaluate_all.py` to comprehensively test Baseline, FGSM-AT, and PGD-AT models across various FGSM and PGD epsilon settings.
@@ -230,7 +216,6 @@ data/
 
 ### Session 8
 **Date:** 2026-06-02
-**Present:** All three members
 
 **Work done:**
 - Designed a new `CifarCNN` architecture (3 conv layers + BN + dropout) to handle CIFAR-10's RGB images while remaining lightweight enough for CPU training.
