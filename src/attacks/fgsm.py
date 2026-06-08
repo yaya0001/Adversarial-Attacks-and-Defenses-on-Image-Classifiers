@@ -1,17 +1,7 @@
 """
-FGSM (Fast Gradient Sign Method) Attack
-========================================
-Implementation of the one-step adversarial attack introduced by
-Goodfellow et al. (2015), "Explaining and Harnessing Adversarial Examples".
-
-The core idea:
-    x_adv = x + ε · sign(∇_x L(θ, x, y))
-
-The perturbation is computed in a *single* gradient step, making FGSM
-extremely fast but relatively weak compared to iterative attacks like PGD.
-
-Reference:
-    https://arxiv.org/abs/1412.6572
+FGSM (Fast Gradient Sign Method) Attack:
+Implementation of the one-step adversarial attack
+The perturbation is computed in a single gradient step, making FGSM extremely fast but relatively weak compared to iterative attacks like PGD
 """
 
 import torch
@@ -29,28 +19,26 @@ def fgsm_attack(
     Generate adversarial examples using FGSM.
 
     Args:
-        model:   The target classifier (must be in eval mode).
-        images:  Clean input images of shape ``(B, C, H, W)``.
-        labels:  Ground-truth labels of shape ``(B,)``.
-        epsilon: Perturbation magnitude (ℓ∞ budget). Typical values for
-                 MNIST are in the range [0.05, 0.3].
+        model:   The target classifier
+        images:  Clean input images
+        labels:  Ground-truth labels
+        epsilon: Perturbation magnitude
 
     Returns:
-        Adversarial images of the same shape, clamped to [0, 1].
+        Adversarial images.
     """
-    # Create a differentiable copy of the input (do NOT modify the original)
+    # Create a differentiable copy of the input
     images = images.clone().detach().requires_grad_(True)
 
-    # Forward pass — compute classification loss
+    # Forward pass : compute classification loss
     outputs = model(images)
     loss = F.cross_entropy(outputs, labels)
 
-    # Backward pass — compute gradient of loss w.r.t. input pixels
+    # Backward pass : compute gradient of loss w.r.t. input pixels
     model.zero_grad()
     loss.backward()
 
-    # Craft adversarial examples: move each pixel by ε in the direction
-    # that *increases* the loss (i.e., the sign of the gradient)
+    # Craft adversarial examples: move each pixel by ε in the direction that increases the loss
     perturbed_images = images + epsilon * images.grad.sign()
 
     # Clamp to valid pixel range [0, 1] to produce realistic images
